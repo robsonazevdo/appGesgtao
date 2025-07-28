@@ -1,0 +1,273 @@
+[
+   {
+      "id":"504ac302.afb53c",
+      "type":"template",
+      "name":"",
+      "field":"payload",
+      "template":"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional/EN\">\n\n<html class=\"no-js\"> <head> <meta charset=\"utf-8\"> <title>SunSprite Calendar</title> <meta name=\"viewport\" content=\"width=device-width\"> <!-- Place favicon.ico and apple-touch-icon.png in the root directory --> <link rel=\"stylesheet\" href=\"https://www.sunsprite.com/mydata/styles/vendor.f56ec3ba.css\"> <link rel=\"stylesheet\" href=\"https://www.sunsprite.com/mydata/styles/main.548bd8d0.css\">\n<div class=\"container\"> <div class=\"header\"> <ul class=\"nav nav-pills pull-right\"> <li><img src=\"https://www.sunsprite.com/mydata/images/sunsprite-logo-header.b95ec4d8.png\" alt=\"SunSprite Logo\" height=\"50px\"></li> </ul> <h3 class=\"text-muted\">SunSprite Calendar View</h3> </div> <div ng-view=\"\"></div> \n<form action=\"http://xxx.xxx.xxx.xxx/compute\" method=\"post\">\n<b>Username</b><br> <input type=\"text\" name=\"user\" size=\"100\" maxlength=\"30\"/><br>\n<b>Password</b><br> <input type=\"password\" name=\"pwd\" size=\"100\" maxlength=\"30\"/><br><br>\n<b>Rough time zone*</b><br>\n<input type=\"radio\" name=\"tz\" value=\"0\" checked>&nbsp; GMT/Europe &nbsp;&nbsp; \n<input type=\"radio\" name=\"tz\" value=\"-6\">&nbsp; CST (Chicago) &nbsp;&nbsp;\n<input type=\"radio\" name=\"tz\" value=\"-10\">&nbsp; HAST (Honolulu) &nbsp;&nbsp; \n<input type=\"radio\" name=\"tz\" value=\"+11\">&nbsp; AEST (Sidney) &nbsp;&nbsp;\n<input type=\"radio\" name=\"tz\" value=\"+6\">&nbsp; IST/India\n<br><br> \n\n<button type=\"submit\">Submit</button>\n</form>\n<br><br><br><br><br>\n<div class=\"footer\">\n*This information is used to estimate in what time frame you're likely going to get your 12hrs of sunshine. Remember that your SunSprite has it's internal clock ticking in UTC. It's not aware of where you live.<br>\n<p>Brought to you by <b>@BorisAdryan</b> with absolutely no guarantees.</p> </div> </div>\n</html>",
+      "x":266,
+      "y":103,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "cc15d7d8.33ea28"
+         ]
+      ]
+   },
+   {
+      "id":"fcae95ba.035168",
+      "type":"http in",
+      "name":"",
+      "url":"/index",
+      "method":"get",
+      "x":88,
+      "y":103,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "504ac302.afb53c"
+         ]
+      ]
+   },
+   {
+      "id":"cc15d7d8.33ea28",
+      "type":"http response",
+      "name":"",
+      "x":440,
+      "y":102,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         
+      ]
+   },
+   {
+      "id":"da497f17.25b68",
+      "type":"http in",
+      "name":"/compute",
+      "url":"/compute",
+      "method":"post",
+      "x":74,
+      "y":530,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "5bd20c62.a42df4",
+            "a222283c.5dddd8"
+         ]
+      ]
+   },
+   {
+      "id":"5bd20c62.a42df4",
+      "type":"function",
+      "name":"parse input",
+      "func":"// The received message is stored in 'msg'\n// It will have at least a 'payload' property:\n//   console.log(msg.payload);\n// The 'context' object is available to store state\n// between invocations of the function\n//   context = {};\n\nmsg.user = msg.req.body[\"user\"];\nmsg.pwd = msg.req.body[\"pwd\"];\nmsg.tz = msg.req.body[\"tz\"];\n\nreturn msg;",
+      "outputs":"1",
+      "x":221.00003051757812,
+      "y":216,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "83e2600.f7c1da"
+         ]
+      ]
+   },
+   {
+      "id":"44ee9a4d.bb1164",
+      "type":"http response",
+      "name":"",
+      "x":990,
+      "y":204,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         
+      ]
+   },
+   {
+      "id":"17c81db6.e837e2",
+      "type":"comment",
+      "name":"A web service ",
+      "info":"",
+      "x":93,
+      "y":57,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         
+      ]
+   },
+   {
+      "id":"b2f90e46.4d06f",
+      "type":"comment",
+      "name":"A response",
+      "info":"",
+      "x":86,
+      "y":175,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         
+      ]
+   },
+   {
+      "id":"5682b7bd.a97d48",
+      "type":"template",
+      "name":"response with cal",
+      "field":"payload",
+      "template":"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional/EN\">\n  <head>\n    <script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>\n    <script type=\"text/javascript\">\n      google.load(\"visualization\", \"1.1\", {packages:[\"calendar\"]});\n      google.setOnLoadCallback(drawChart);\n\n   function drawChart() {\n       var dataTable = new google.visualization.DataTable();\n       dataTable.addColumn({ type: 'date', id: 'Date' });\n       dataTable.addColumn({ type: 'number', id: 'Exposure ' });\n       dataTable.addRows([\n          {{metric}}\n        ]);\n\n       var chart = new google.visualization.Calendar(document.getElementById('calendar_basic'));\n\n       var options = {\n         title: \"Day Light Exposure Chart\",\n         height: 350,\n         calendar: { cellSize: 13 }\n       };\n\n       chart.draw(dataTable, options);\n   }\n    </script>\n    <meta charset=\"utf-8\"> <title>SunSprite Calendar</title> <meta name=\"viewport\" content=\"width=device-width\"> <!-- Place favicon.ico and apple-touch-icon.png in the root directory --> <link rel=\"stylesheet\" href=\"https://www.sunsprite.com/mydata/styles/vendor.f56ec3ba.css\"> <link rel=\"stylesheet\" href=\"https://www.sunsprite.com/mydata/styles/main.548bd8d0.css\">\n  </head>\n  <body>\n    <div class=\"container\"> <div class=\"header\"> <ul class=\"nav nav-pills pull-right\"> <li><img src=\"https://www.sunsprite.com/mydata/images/sunsprite-logo-header.b95ec4d8.png\" alt=\"SunSprite Logo\" height=\"50px\"></li> </ul> <h3 class=\"text-muted\">SunSprite Calendar View</h3> </div> <div ng-view=\"\"></div> \n    <div id=\"calendar_basic\" style=\"width: 750px; height: 350px;\"></div>\n    <div class=\"footer\">\n    <p>You are {{user}} with last sync on {{lastsync}} at battery level {{batt}}%.</p>\n    <p>You last synced {{offset}} hrs offset to UTC.</p>\n    <p>Brought to you by <b>@BorisAdryan</b> with absolutely no guarantees.</p> \n  </body>\n</html>",
+      "x":958,
+      "y":309,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "44ee9a4d.bb1164"
+         ]
+      ]
+   },
+   {
+      "id":"567c1303.a983ec",
+      "type":"http request",
+      "name":"post login",
+      "method":"use",
+      "url":"",
+      "x":526,
+      "y":194,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "1eb416be.e14be9"
+         ]
+      ]
+   },
+   {
+      "id":"83e2600.f7c1da",
+      "type":"function",
+      "name":"login details",
+      "func":"// the app credentials as supplied by SunSprite\nvar appname = \"kid_Ve5xRCs7Mm\";\nvar appkey  = \"a7f19fa982f4448e84b9ab29bd105a8b\";\n\nvar applogin = new Buffer(appname+\":\"+appkey).toString('base64'); // b64 formatted login string\n\nvar newMsg = {\n  url: \"http://baas.kinvey.com/user/\"+appname+\"/login\", // REST endpoint for login\n\n  // define header with app-specific login and specify user name and password of SunSprite user\n  headers: { 'Content-Type' : 'application/json', 'Authorization' : 'Basic '+applogin },\n  payload: JSON.stringify({\"username\": msg.user, \"password\": msg.pwd}),\n\n  method: \"POST\", // POST this request\n  res: msg.res,  // carry on the response object\n  user: msg.user // and user\n}\nreturn newMsg;",
+      "outputs":"1",
+      "x":378,
+      "y":217,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "567c1303.a983ec"
+         ]
+      ]
+   },
+   {
+      "id":"2378fdc2.dc8702",
+      "type":"function",
+      "name":"user details on success",
+      "func":"var parameters = JSON.parse(msg.payload);\n\nmsg.token    = parameters[\"_kmd\"][\"authtoken\"];\nmsg.sprite   = parameters[\"sunSpriteUUID\"];\nmsg.batt     = parameters[\"lastBatteryPercent\"]*100;\nmsg.luxgoal  = parameters[\"luxGoal\"];\nmsg.lastsync = parameters[\"syncRefDate\"];\nmsg.offset   = parameters[\"timezoneOffsetSec\"]/60/60;\nmsg.metric   = \"\";\nmsg.topic    = \"meta\";\n\nreturn msg;",
+      "outputs":1,
+      "x":304,
+      "y":335,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "89dc8f3b.76237",
+            "a222283c.5dddd8"
+         ]
+      ]
+   },
+   {
+      "id":"1eb416be.e14be9",
+      "type":"switch",
+      "name":"success?",
+      "property":"payload",
+      "rules":[
+         {
+            "t":"cont",
+            "v":"InvalidCredentials"
+         },
+         {
+            "t":"else"
+         }
+      ],
+      "checkall":"true",
+      "outputs":2,
+      "x":679,
+      "y":180,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "566428b8.a99bd8"
+         ],
+         [
+            "2378fdc2.dc8702"
+         ]
+      ]
+   },
+   {
+      "id":"566428b8.a99bd8",
+      "type":"function",
+      "name":"it's bad",
+      "func":"msg.res.send(200, 'Thanks for the request, but your credentials are not valid. Use the BACK button and try again.');\nreturn msg;",
+      "outputs":1,
+      "x":823,
+      "y":124,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "44ee9a4d.bb1164"
+         ]
+      ]
+   },
+   {
+      "id":"f6c931c8.0936d",
+      "type":"http request",
+      "name":"get data",
+      "method":"use",
+      "url":"",
+      "x":723,
+      "y":334,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "712bb189.8ed45"
+         ]
+      ]
+   },
+   {
+      "id":"89dc8f3b.76237",
+      "type":"function",
+      "name":"get dates",
+      "func":"var appname = \"kid_Ve5xRCs7Mm\";\n\nDate.prototype.minusDays = function(days) {\n  var dat = new Date(this.valueOf())\n  dat.setDate(dat.getDate() - days);\n  return dat;\n}\n\nDate.prototype.addDays = function(days) {\n  var dat = new Date(this.valueOf())\n  dat.setDate(dat.getDate() + days);\n  return dat;\n}\n\nvar backthen = new Date().minusDays(365).toISOString().substring(0,10);\nvar tomorrow = new Date().addDays(1).toISOString().substring(0,10);\n\n// a query for just today where isgoodLux=true, and we want goodLux and date\nmsg.url = \"http://baas.kinvey.com/appdata/\"+appname+\n'/dailyRecords/?query={\"date\":{\"$lt\":\"'+tomorrow+'\",\"$gte\":\"'+backthen+'\"}}&fields=accumulatedLux,date';\n\nmsg.method = \"GET\";\n\n// use the AUTHTOKEN obtained in the login flow\nmsg.headers = { 'Authorization' : 'Kinvey '+msg.token };\n\nreturn msg;",
+      "outputs":1,
+      "x":539,
+      "y":335,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "f6c931c8.0936d"
+         ]
+      ]
+   },
+   {
+      "id":"712bb189.8ed45",
+      "type":"function",
+      "name":"get accumulatedLux",
+      "func":"var payload = \"\";\nvar qualityRegex = /\\\"date\\\"\\:\\\"(.{10})T(.{12})Z\\\",\\\"accumulatedLux\\\"\\:(\\d+(.\\d+)?)/mg;\n  while (matches = qualityRegex.exec(msg.payload)) {\n    var myA = matches[1].split(\"-\");\n      if (matches[3] > 2*msg.luxgoal) {\n        matches[3] = 2*msg.luxgoal;\n      }\n    var val = (-100+(matches[3]/msg.luxgoal)*100).toFixed(1)\n    payload += \"[ new Date(\"+myA[0]+\", \"+(parseInt(myA[1])-1)+\", \"+myA[2]+\"), \"+val+\" ],\";\n  }\n\nmsg.topic = \"measurement\";\nmsg.payload = payload.slice(0,-1);\nreturn msg;",
+      "outputs":1,
+      "x":740,
+      "y":431,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "a222283c.5dddd8"
+         ]
+      ]
+   },
+   {
+      "id":"a222283c.5dddd8",
+      "type":"function",
+      "name":"format",
+      "func":"if (msg.topic != \"measurement\" && msg.topic != \"meta\") {\n  context.msg = msg;\n}\n\nif (msg.topic == \"meta\") {\n  context.user = msg.user;\n  context.lastsync = msg.lastsync;\n  context.offset = msg.offset;\n  context.batt = msg.batt;\n  context.luxgoal = msg.luxgoal;\n}\n\nif (msg.topic == \"measurement\") {\n  var keyMsg;\n  keyMsg = context.msg;\n  keyMsg.user = context.user;\n  keyMsg.batt = context.batt;\n  keyMsg.lastsync = context.lastsync;\n  keyMsg.offset = context.offset;\n  keyMsg.metric = msg.payload;\n    \n  context.msg = undefined;\n  context.user = \"\";\n  context.batt = 0;\n  context.lastsync = \"\";\n  context.offset = 0;\n  context.count = 0;\n  context.str = \"\";\n  return keyMsg;\n}",
+      "outputs":1,
+      "x":828,
+      "y":535,
+      "z":"409466e9.bf6b98",
+      "wires":[
+         [
+            "5682b7bd.a97d48"
+         ]
+      ]
+   }
+]
