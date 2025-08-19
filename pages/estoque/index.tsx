@@ -126,10 +126,10 @@ const handleServiceEditar = (service: any) => {
 
 
 
-const handleStockDelet = (produtcsId: number) => {
+const handleStockDelet = (stockId: number) => {
   Alert.alert(
     'Confirmar Exclusão',
-    'Tem certeza que deseja excluir este produto?',
+    'Tem certeza que deseja excluir este Estoque?',
     [
       { text: 'Cancelar', style: 'cancel' },
       {
@@ -138,7 +138,7 @@ const handleStockDelet = (produtcsId: number) => {
         onPress: async () => {
         setLoading(true);
         try {
-          const json = await Api.deleteStock({ products_id: produtcsId });
+          const json = await Api.deleteStock({ stock_id: stockId });
           if (json.success) {
             
             setDeleteList([]);
@@ -146,10 +146,10 @@ const handleStockDelet = (produtcsId: number) => {
             
             setShowDeleteEstoqueModal(false);
           } else {
-            Alert.alert('Erro', json.error || 'Falha ao excluir o produto.');
+            Alert.alert('Erro', json.error || 'Falha ao excluir o estoque.');
           }
         } catch {
-          Alert.alert('Erro', 'Não foi possível excluir o produto.');
+          Alert.alert('Erro', 'Não foi possível excluir o estoque.');
         } finally {
           setLoading(false);
         }
@@ -272,22 +272,22 @@ const handleStockDelet = (produtcsId: number) => {
           setDeleteList(arr);
           return arr;
         }}
-       onSelectItem={(produtcs) => {
+       onSelectItem={(stock) => {
           
-          handleStockDelet(produtcs.id);
+          handleStockDelet(stock.id);
         }}
 
-        renderItem={(produtcs) => (
+        renderItem={(stock) => (
           <InfoAndButtonRow>
             <InfoColumn>
               <InfoRow>
                 <IconText numberOfLines={1} ellipsizeMode="tail">
-                  {produtcs.name}
+                  {stock.product}
                 </IconText>
               </InfoRow>
             </InfoColumn>
 
-            <AgendarButton onPress={() => handleStockDelet(produtcs.id )}>
+            <AgendarButton onPress={() => handleStockDelet(stock.id )}>
 
               <AgendarButtonText>Deletar</AgendarButtonText>
             </AgendarButton>

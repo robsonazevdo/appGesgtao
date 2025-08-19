@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
  //const BASE_API = 'http://192.168.0.133:5000'; // Exemplo real de IP local
-const BASE_API = 'http://192.168.0.148:5000';
+const BASE_API = 'http://192.168.0.172:5000';
 
 type SignInResponse = {
   token?: string;
@@ -650,6 +650,21 @@ UpdateStock: async (data: {id: number; name: string; price: number; cost: number
     console.error('Erro na API updateProdutcs:', error);
     return { error: 'Erro na comunicação com o servidor' };
   }
+},
+
+deleteStock: async ({ stock_id }: { stock_id: number }) => {
+  const token = await AsyncStorage.getItem('token');
+  const res = await fetch(`${BASE_API}/stock/delete/${stock_id}`, {
+    method: 'DELETE',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+
+    
+  });
+  return res.json();
 },
 
 };
