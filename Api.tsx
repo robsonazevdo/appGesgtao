@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
  //const BASE_API = 'http://192.168.0.133:5000'; // Exemplo real de IP local
-const BASE_API = 'http://192.168.0.172:5000';
+const BASE_API = 'http://192.168.0.229:5000';
 
 type SignInResponse = {
   token?: string;
@@ -665,6 +665,22 @@ deleteStock: async ({ stock_id }: { stock_id: number }) => {
     
   });
   return res.json();
+},
+
+
+getPackageSerch: async (data: { name: string }) => {
+    const token = await AsyncStorage.getItem('token');
+    const req = await fetch(`${BASE_API}/package/movimentacoes`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ name: data.name }),
+    });
+  const json = await req.json();
+  return json; 
 },
 
 };

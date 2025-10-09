@@ -16,6 +16,7 @@ type RootStackParamList = {
   HomeServico: undefined;
   HomeProduto: undefined;
   HomeEstoque: undefined;
+  HomePacotes: undefined;
 };
 
 const options = [
@@ -40,6 +41,9 @@ export default function CadastroScreen() {
       navigation.navigate('HomeProduto')
     }else if (key === 'estoque'){
       navigation.navigate('HomeEstoque')
+    }else if (key === 'pacotes'){
+      navigation.navigate('HomePacotes')
+    
     }else {
       navigation.navigate(key as never);
     }

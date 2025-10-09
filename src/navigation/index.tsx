@@ -9,6 +9,7 @@ import HomeCliente from '@/pages/clientes';
 import HomeServico from '@/pages/servicos';
 import HomeProduto from '@/pages/produtos';
 import HomeEstoque from '@/pages/estoque';
+import HomePacotes from '@/pages/package';
 import CustomTabBar from '../../components/CustomTabBar';
 import Agendamento from '../screens/agendamento';
 import Cadastro from '../screens/cadastro';
@@ -65,6 +66,7 @@ export default function Navigation() {
         <Stack.Screen name="HomeServico" component={HomeServico} />
         <Stack.Screen name="HomeProduto" component={HomeProduto} />
         <Stack.Screen name="HomeEstoque" component={HomeEstoque} />
+        <Stack.Screen name="HomePacotes" component={HomePacotes} />
         <Stack.Screen name="clientes" component={clientes} />
         <Stack.Screen name="Agendamento" component={Agendamento} />
       </Stack.Navigator>
