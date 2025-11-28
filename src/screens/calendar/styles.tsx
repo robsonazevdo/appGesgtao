@@ -42,6 +42,8 @@ export const AgendaButton = styled.TouchableOpacity`
 export const AgendaButtonText = styled.Text`
   color: #fff;
   font-size: 13px;
+  
+  
 `;
 
 export const ButtonArea = styled.View`

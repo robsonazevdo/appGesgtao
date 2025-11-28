@@ -17,6 +17,7 @@ type RootStackParamList = {
   HomeProduto: undefined;
   HomeEstoque: undefined;
   HomePacotes: undefined;
+  HomeConfig: undefined;
 };
 
 const options = [
@@ -25,6 +26,7 @@ const options = [
   { key: 'produtos', label: 'Produtos', Icon: NextIcon  },
   { key: 'estoque', label: 'Estoque', Icon: NextIcon  },
   { key: 'pacotes', label: 'Pacotes', Icon: NextIcon  },
+  { key: 'config', label: 'Config', Icon: NextIcon  },
 ];
 
 export default function CadastroScreen() {
@@ -44,6 +46,8 @@ export default function CadastroScreen() {
     }else if (key === 'pacotes'){
       navigation.navigate('HomePacotes')
     
+    }else if (key === 'config'){
+      navigation.navigate('HomeConfig')
     }else {
       navigation.navigate(key as never);
     }

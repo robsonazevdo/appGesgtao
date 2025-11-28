@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
- //const BASE_API = 'http://192.168.0.133:5000'; // Exemplo real de IP local
-const BASE_API = 'http://192.168.0.229:5000';
+ const BASE_API = 'http://192.168.0.254:5000'; // Exemplo real de IP local
+//const BASE_API = 'http://192.168.0.230:5000';
 
 type SignInResponse = {
   token?: string;
@@ -682,6 +682,93 @@ getPackageSerch: async (data: { name: string }) => {
   const json = await req.json();
   return json; 
 },
+
+getAvailability: async (barber_id: any, date: any) => {
+  const token = await AsyncStorage.getItem('token');
+
+  const res = await fetch(
+    `${BASE_API}/barber/barbers/${barber_id}/availability?date=${date}`,
+    {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return res.json();
+},
+
+async saveSchedule(data: any) {
+  const token = await AsyncStorage.getItem('token');
+  const req = await fetch(`${BASE_API}/barbers/schedule/save`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data)
+  });
+  return await req.json();
+},
+
+async getBarberSchedule(barber_id: number, date: string) {
+  const token = await AsyncStorage.getItem('token');
+  const req = await fetch(`${BASE_API}/barbers/${barber_id}/schedule?date=${date}`, {
+  method: 'GET',
+  headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+
+  }
+);
+  return await req.json();
+},
+
+getComandaItems: async (id: any) => {
+  const token = await AsyncStorage.getItem('token');
+  const req = await fetch(`${BASE_API}/comandas/${id}/items`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return req.json();
+},
+
+cancelComanda: async (id: any) => {
+  const token = await AsyncStorage.getItem('token');
+  const req = await fetch(`${BASE_API}/comandas/${id}/cancel`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return req.json();
+},
+
+finishComanda: async (id: any) => {
+  const token = await AsyncStorage.getItem('token');
+  const req = await fetch(`${BASE_API}/comandas/${id}/finish`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return req.json();
+},
+
+
+getOrdersSeach: async ( ): Promise<GetBarbersResponse> => {
+    const token = await AsyncStorage.getItem('token');
+    
+    const req = await fetch(`${BASE_API}/orders/all`, {
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+    const json = await req.json();
+    return json;
+  },
+
+
+
 
 };
 

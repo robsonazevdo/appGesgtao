@@ -1,207 +1,279 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { FlatList, Keyboard } from 'react-native';
+import BackIcon from '../../../assets/images/back.svg';
+import PersonIcon from '../../../assets/images/person.svg';
+import { Alert, TextInput, Text } from 'react-native';
+import Api from '../../../Api';
+
+
 import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TextInput,
-  Button,
-  Alert,
-} from 'react-native';
+    BackButton,
+    Container,
+    FormArea,
+    Logo,
+    InfoAndButtonRow,
+    InfoColumn,
+    InfoRow,
+    Label,
+    AgendarButton,
+    AgendarButtonText,
+    PickerInput,
+    TextplaceholderInput
+} from './styles';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import ComandaOptionCard from '@/components/ComandaOption';
+import {  SearchInput, SuggestionItem, SuggestionList, SuggestionText } from '../agendamento/styles';
 
-type Servico = {
-  id: string;
-  nome: string;
-  preco: number;
-};
-
-type Comanda = {
-  id: string;
-  cliente: string;
-  servicos: Servico[];
+type RootStackParamList = {
+  Venda: undefined;
+  Agendamento: { client: any };
+  onClose: () => void;
+  
 };
 
 export default function ComandasScreen() {
-  const [comandas, setComandas] = useState<Comanda[]>([]);
-  const [historico, setHistorico] = useState<Comanda[]>([]);
 
-  const [clienteNome, setClienteNome] = useState('');
-  const [servicoNome, setServicoNome] = useState('');
-  const [servicoPreco, setServicoPreco] = useState('');
-  const [comandaAtivaId, setComandaAtivaId] = useState<string | null>(null);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const abrirComanda = () => {
-    if (!clienteNome.trim()) return Alert.alert('Erro', 'Informe o nome do cliente');
+  const [numeroComanda, setNumeroComanda] = useState("");
+  const [error, setError] = useState("");
 
-    const novaComanda: Comanda = {
-      id: Date.now().toString(),
-      cliente: clienteNome.trim(),
-      servicos: [],
-    };
+  const [clientQuery, setClientQuery] = useState('');
+  const [filteredClients, setFilteredClients] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
+  const [selectedClient, setSelectedClient] = useState<string | number>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
-    setComandas(prev => [...prev, novaComanda]);
-    setComandaAtivaId(novaComanda.id);
-    setClienteNome('');
-  };
+  const [comandas, setComandas] = useState([]);
+  
 
-  const adicionarServico = () => {
-    if (!servicoNome.trim() || !servicoPreco.trim()) {
-      return Alert.alert('Erro', 'Informe nome e preço do serviço');
+
+
+const createComandaManual = () => {
+  const num = numeroComanda.trim();
+
+  // 🔥 valida número
+  if (!num) {
+    setError("Digite o número da comanda.");
+    return;
+  }
+
+  if (isNaN(Number(num))) {
+    setError("A comanda deve ser apenas números.");
+    return;
+  }
+
+  if (Number(num) <= 0) {
+    setError("O número da comanda deve ser maior que 0.");
+    return;
+  }
+
+  // 🔥 valida cliente selecionado
+  if (!selectedClient) {
+    setError("Selecione um cliente da lista.");
+    return;
+  }
+
+  const clienteObj = clients.find(c => c.id === selectedClient);
+  if (!clienteObj) {
+    setError("Cliente selecionado não existe.");
+    return;
+  }
+
+  // 🔥 validar duplicidade
+  const idFormatado = num.padStart(3, "0");
+  const existe = comandas.some(c => c.id === idFormatado);
+  if (existe) {
+    setError("Essa comanda já existe!");
+    return;
+  }
+
+  // limpar erro
+  setError("");
+
+  Alert.alert(
+    "Criar Comanda",
+    `Criar comanda nº ${idFormatado} para ${clienteObj.name}?`,
+    [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Criar",
+        onPress: () => {
+          setComandas([
+            ...comandas,
+            {
+              id: idFormatado,
+              cliente: clienteObj.name
+            }
+          ]);
+
+          // limpar campos
+          setNumeroComanda("");
+          setClientQuery("");
+          setSelectedClient("");
+        }
+      }
+    ]
+  );
+};
+
+
+
+
+const loadClients = async () => {
+    try {
+      const json = await Api.getClients();
+      if (Array.isArray(json.client)) {
+        setClients(json.client);
+        //if (json.client.length > 0) setSelectedClient(json.client[0].id);
+      }
+    } catch {
+      Alert.alert('Erro', 'Erro ao carregar clientes');
     }
+  };
 
-    const preco = parseFloat(servicoPreco);
-    if (isNaN(preco)) return Alert.alert('Erro', 'Preço inválido');
 
-    const novoServico: Servico = {
-      id: Date.now().toString(),
-      nome: servicoNome.trim(),
-      preco,
+const loadOrders = async () => {
+  try {
+    const json = await Api.getOrdersSeach();
+
+    if (Array.isArray(json.orders)) {
+      setComandas(json.orders);
+    } 
+
+  } catch (e) {
+    console.log("ERRO AO CARREGAR:", e);
+    Alert.alert('Erro', 'Erro ao carregar comanda');
+  }
+};
+
+
+  const comandasOptions = comandas.map(comanda => ({
+    key: comanda.id,
+    cliente: comanda.cliente,
+    Icon: PersonIcon,
+  }));
+
+
+
+  const handleBackButton = () => {
+    navigation.goBack();
+  };
+
+
+
+  const CancelarComanda = (key: string) => {
+    console.log(key, 'cancelar');
+  };
+
+  const FinaliarComanda = (key: string) => {
+    console.log(key);
+  };
+
+
+  const initData = async () => {
+      setLoading(true);
+      await Promise.all([loadClients(), loadOrders()]);
+      setLoading(false);
     };
-
-    setComandas(prev =>
-      prev.map(c =>
-        c.id === comandaAtivaId
-          ? { ...c, servicos: [...c.servicos, novoServico] }
-          : c
-      )
-    );
-
-    setServicoNome('');
-    setServicoPreco('');
-  };
-
-  const fecharComanda = (id: string) => {
-    const comanda = comandas.find(c => c.id === id);
-    if (!comanda) return;
-
-    Alert.alert(
-      'Fechar Comanda',
-      `Deseja fechar a comanda de ${comanda.cliente}?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Fechar',
-          onPress: () => {
-            setComandas(prev => prev.filter(c => c.id !== id));
-            setHistorico(prev => [...prev, comanda]);
-            if (comandaAtivaId === id) setComandaAtivaId(null);
-          },
-        },
-      ]
-    );
-  };
-
-  const getTotal = (servicos: Servico[]) =>
-    servicos.reduce((total, s) => total + s.preco, 0);
-
-  const comandaAtiva = comandas.find(c => c.id === comandaAtivaId);
+  
+    useEffect(() => {
+      initData();
+    }, []);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Nova Comanda</Text>
-      {!comandaAtiva && (
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Nome do cliente"
-            value={clienteNome}
-            onChangeText={setClienteNome}
+    <Container>
+      <Logo source={require('../../../assets/images/Logo-branco.png')} resizeMode="contain" />
+
+      <BackButton onPress={handleBackButton}>
+        <BackIcon width="45px" height="45px" fill="#333" />
+      </BackButton>
+
+      {/* CLIENTE */}
+        <Label>Cliente</Label>
+
+        <PickerInput>
+          <SearchInput
+            placeholder="Digite o nome do cliente"
+            value={clientQuery}
+            onChangeText={(text) => {
+              setClientQuery(text);
+
+              // sempre limpar cliente selecionado se digitou
+              setSelectedClient("");
+
+              // filtrar
+              setFilteredClients(
+                clients.filter(c =>
+                  c.name.toLowerCase().includes(text.toLowerCase())
+                )
+              );
+            }}
+
           />
-          <Button title="Abrir Comanda" onPress={abrirComanda} />
-        </View>
+        </PickerInput>
+
+      {filteredClients.length > 0 && clientQuery.length > 0 && (
+        <SuggestionList>
+          {filteredClients.map((c) => (
+            <SuggestionItem
+              key={c.id}
+              onPress={() => {
+                setSelectedClient(c.id);
+                setClientQuery(c.name);
+                setFilteredClients([]);
+                Keyboard.dismiss();
+              }}
+            >
+              <SuggestionText>{c.name}</SuggestionText>
+            </SuggestionItem>
+          ))}
+        </SuggestionList>
       )}
 
-      {comandaAtiva && (
-        <View style={styles.comandaBox}>
-          <Text style={styles.subtitle}>Cliente: {comandaAtiva.cliente}</Text>
-          <FlatList
-            data={comandaAtiva.servicos}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-              <Text style={styles.item}>
-                {item.nome} - R$ {item.preco.toFixed(2)}
-              </Text>
-            )}
-            ListEmptyComponent={<Text style={styles.empty}>Nenhum serviço ainda.</Text>}
+
+
+      <FormArea>
+        <Label>Comanda</Label>
+        <TextplaceholderInput
+          placeholder="Número da comanda"
+          value={numeroComanda}
+          onChangeText={setNumeroComanda}
+          keyboardType="numeric"
+          style={{
+            backgroundColor: "#fff",
+            padding: 12,
+            borderRadius: 10,
+            marginBottom: 5,
+            borderWidth: 1,
+            borderColor: "#ccc"
+          }}
+        />
+
+        {error ? (
+          <Text style={{ color: "red", marginBottom: 10 }}>{error}</Text>
+        ) : null}
+
+        <AgendarButton onPress={createComandaManual}>
+          <AgendarButtonText>Criar comanda</AgendarButtonText>
+        </AgendarButton>
+
+        <FlatList
+          data={comandasOptions}
+          keyExtractor={(item) => item.key}
+          renderItem={({ item }) => (
+            <ComandaOptionCard
+            label={item.cliente}
+            numero={item.key}
+            Icon={item.Icon}
+            onCancel={() => CancelarComanda(item.key)}
+            onFinish={() => FinaliarComanda(item.key)}
           />
 
-          <Text style={styles.total}>
-            Total: R$ {getTotal(comandaAtiva.servicos).toFixed(2)}
-          </Text>
-
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="Serviço"
-              value={servicoNome}
-              onChangeText={setServicoNome}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Preço"
-              value={servicoPreco}
-              keyboardType="numeric"
-              onChangeText={setServicoPreco}
-            />
-            <Button title="Adicionar Serviço" onPress={adicionarServico} />
-          </View>
-
-          <Button
-            title="Fechar Comanda"
-            color="#B71C1C"
-            onPress={() => fecharComanda(comandaAtiva.id)}
-          />
-        </View>
-      )}
-
-      <Text style={styles.title}>Histórico</Text>
-      <FlatList
-        data={historico}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.historicoBox}>
-            <Text style={styles.subtitle}>{item.cliente}</Text>
-            {item.servicos.map(serv => (
-              <Text key={serv.id} style={styles.item}>
-                {serv.nome} - R$ {serv.preco.toFixed(2)}
-              </Text>
-            ))}
-            <Text style={styles.total}>
-              Total: R$ {getTotal(item.servicos).toFixed(2)}
-            </Text>
-          </View>
-        )}
-        ListEmptyComponent={<Text style={styles.empty}>Nenhuma comanda fechada.</Text>}
-      />
-    </View>
+          )}
+        />
+      </FormArea>
+    </Container>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  title: { fontSize: 20, fontWeight: 'bold', marginVertical: 10 },
-  subtitle: { fontSize: 16, fontWeight: 'bold', marginTop: 10 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 8,
-    marginBottom: 8,
-    borderRadius: 6,
-  },
-  form: { marginVertical: 10 },
-  comandaBox: {
-    backgroundColor: '#f1f1f1',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 20,
-  },
-  item: { fontSize: 16, paddingVertical: 2 },
-  total: { marginTop: 10, fontWeight: 'bold', fontSize: 16 },
-  empty: { color: '#888', fontStyle: 'italic', marginTop: 6 },
-  historicoBox: {
-    backgroundColor: '#eee',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 14,
-  },
-});

@@ -10,6 +10,7 @@ import HomeServico from '@/pages/servicos';
 import HomeProduto from '@/pages/produtos';
 import HomeEstoque from '@/pages/estoque';
 import HomePacotes from '@/pages/package';
+import HomeConfig from '@/pages/BarberSchedule';
 import CustomTabBar from '../../components/CustomTabBar';
 import Agendamento from '../screens/agendamento';
 import Cadastro from '../screens/cadastro';
@@ -20,6 +21,10 @@ import Preload from '../screens/preload';
 import SignIn from '../screens/SignIn';
 import SignUp from '../screens/SignUp';
 import Venda from '../screens/vendas';
+import ComandasScreen from '../screens/comanda';
+import FinalizarScreen from '../screens/Finalizar';
+import CaixaScreen from '../screens/Caixa';
+import RelatorioScreen from '../screens/Relatorio';
 
 
 
@@ -67,8 +72,15 @@ export default function Navigation() {
         <Stack.Screen name="HomeProduto" component={HomeProduto} />
         <Stack.Screen name="HomeEstoque" component={HomeEstoque} />
         <Stack.Screen name="HomePacotes" component={HomePacotes} />
+        <Stack.Screen name="HomeConfig" component={HomeConfig} />
         <Stack.Screen name="clientes" component={clientes} />
         <Stack.Screen name="Agendamento" component={Agendamento} />
+        <Stack.Screen name="Venda" component={Venda} />
+        <Stack.Screen name="Comandas" component={ComandasScreen} />
+        <Stack.Screen name="Finalizar" component={FinalizarScreen} />
+        <Stack.Screen name="Caixa" component={CaixaScreen} />
+        <Stack.Screen name="Relatorio" component={RelatorioScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

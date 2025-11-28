@@ -43,26 +43,25 @@ import BackIcon from '../../../assets/images/back.svg';
 import { LoadingIcon } from '../home/styles';
 
 type RootStackParamList = {
-  CalendarScreen: { client?: any; services?: any };
+  CalendarScreen: { client?: any };
 };
 
 type CalendarScreenRouteProp = RouteProp<RootStackParamList, 'CalendarScreen'>;
 
+// =================== LOCALE CALENDAR ===================
 LocaleConfig.locales['pt-br'] = {
   monthNames: [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ],
   monthNamesShort: ['Jan.', 'Fev.', 'Mar.', 'Abr.', 'Mai.', 'Jun.', 'Jul.', 'Ago.', 'Set.', 'Out.', 'Nov.', 'Dez.'],
-  dayNames: [
-    'Domingo', 'Segunda-feira', 'Terça-feira',
-    'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'
-  ],
+  dayNames: ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'],
   dayNamesShort: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
   today: 'Hoje',
 };
 LocaleConfig.defaultLocale = 'pt-br';
 
+// =================== HELPERS ===================
 const getToday = () => format(new Date(), 'yyyy-MM-dd');
 
 const formatDateForDisplay = (dateStr: string) => {
@@ -70,13 +69,13 @@ const formatDateForDisplay = (dateStr: string) => {
   return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
 };
 
-const mockHours = ['09:00', '10:00', '11:30', '14:00', '15:30'];
-
+// =================== COMPONENT ===================
 export default function CalendarScreen() {
   const navigation = useNavigation();
   const route = useRoute<CalendarScreenRouteProp>();
-  const client = route.params?.client;
+  const clientParam = route.params?.client;
 
+  // =================== STATES ===================
   const [clientQuery, setClientQuery] = useState('');
   const [filteredClients, setFilteredClients] = useState<any[]>([]);
 
@@ -91,7 +90,90 @@ export default function CalendarScreen() {
   const [selectedHour, setSelectedHour] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [availabilityHours, setAvailabilityHours] = useState<any[]>([]);
+  const [loadingHours, setLoadingHours] = useState(false);
 
+  // =================== LOAD HOURS ===================
+  useEffect(() => {
+    const fetchHours = async () => {
+      setLoadingHours(true);
+      try {
+        const res = await Api.getBarberSchedule(1, selectedDate);
+        
+        setAvailabilityHours(res?.hours ?? []);
+      } catch {
+        setAvailabilityHours([]);
+        Alert.alert('Erro', 'Não foi possível carregar horários');
+      } finally {
+        setLoadingHours(false);
+      }
+    };
+
+    fetchHours();
+  }, [selectedDate]);
+
+  // =================== LOAD CLIENTS & SERVICES ===================
+  const loadClients = async () => {
+    try {
+      const json = await Api.getClients();
+      if (Array.isArray(json.client)) {
+        setClients(json.client);
+        if (json.client.length > 0) setSelectedClient(json.client[0].id);
+      }
+    } catch {
+      Alert.alert('Erro', 'Erro ao carregar clientes');
+    }
+  };
+
+  const loadServices = async () => {
+    try {
+      const json = await Api.getServices();
+      if (Array.isArray(json.service)) {
+        setServices(json.service);
+        if (!selectedService && json.service.length > 0) {
+          setSelectedService(json.service[0].id);
+        }
+      }
+    } catch {
+      Alert.alert('Erro', 'Erro ao carregar serviços');
+    }
+  };
+
+  const initData = async () => {
+    setLoading(true);
+    await Promise.all([loadClients(), loadServices()]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    initData();
+  }, []);
+
+  // Preenche cliente vindo via params
+  useEffect(() => {
+    if (clientParam?.name) {
+      setClientQuery(clientParam.name);
+    }
+  }, [clientParam]);
+
+  // =================== FILTERS ===================
+  useEffect(() => {
+    setFilteredClients(
+      clients.filter(c =>
+        c.name.toLowerCase().includes(clientQuery.toLowerCase())
+      )
+    );
+  }, [clientQuery, clients]);
+
+  useEffect(() => {
+    setFilteredServices(
+      services.filter(s =>
+        s.name.toLowerCase().includes(serviceQuery.toLowerCase())
+      )
+    );
+  }, [serviceQuery, services]);
+
+  // =================== FINALIZE ===================
   const handleFinalize = () => {
     if (!selectedHour) {
       Alert.alert('Selecione um horário');
@@ -100,46 +182,9 @@ export default function CalendarScreen() {
     setModalVisible(true);
   };
 
-  const loadClients = async () => {
-    try {
-      const json = await Api.getClients();
-      if (json && Array.isArray(json.client)) {
-        setClients(json.client);
-        if (json.client.length > 0) {
-          setSelectedClient(json.client[0].id);
-        }
-      } else {
-        Alert.alert('Erro', json?.error || 'Erro ao carregar clientes');
-      }
-    } catch {
-      Alert.alert('Erro', 'Erro ao buscar clientes');
-    }
-  };
-
-  const loadServices = async () => {
-    try {
-      const json = await Api.getServices();
-      if (json && Array.isArray(json.service)) {
-        setServices(json.service);
-        if (!selectedService && json.service.length > 0) {
-          setSelectedService(json.service[0].id);
-        }
-      } else {
-        Alert.alert('Erro', json?.error || 'Erro ao carregar serviços');
-      }
-    } catch {
-      Alert.alert('Erro', 'Erro ao buscar serviços');
-    }
-  };
-
-  const getClientInfo = async () => {
-    setLoading(true);
-    await Promise.all([loadClients(), loadServices()]);
-    setLoading(false);
-  };
-
   const confirmAppointment = async () => {
     setModalVisible(false);
+
     if (!selectedClient || !selectedHour || !selectedService || !selectedDate) {
       Alert.alert('Erro', 'Preencha todos os campos.');
       return;
@@ -151,67 +196,40 @@ export default function CalendarScreen() {
       const result = await Api.createAppointment({
         client_id: Number(selectedClient),
         barber_id: 1,
-        service: Number(selectedService),
-        datetime,
         service_id: Number(selectedService),
+        datetime,
+        service: 0
       });
 
       if (result.success) {
-        Alert.alert('✅ Agendamento confirmado!');
+        Alert.alert('Agendamento confirmado!');
         navigation.goBack();
       } else {
         Alert.alert('Erro', result.error || 'Não foi possível agendar.');
       }
     } catch {
-      Alert.alert('Erro', 'Erro ao se comunicar com o servidor.');
+      Alert.alert('Erro', 'Falha ao comunicar com servidor.');
     }
   };
 
-  const handleBackButton = () => navigation.goBack();
-
-  // Inicializa com cliente vindo via params
-  useEffect(() => {
-    if (client?.name) {
-      setClientQuery(client.name);
-    } else {
-      setClientQuery('');
-    }
-  }, [client]);
-
-  // Carrega clientes e serviços na primeira vez
-  useEffect(() => {
-    getClientInfo();
-  }, []);
-
-  // Filtros
-  useEffect(() => {
-    const filtered = clients.filter(c =>
-      c.name.toLowerCase().includes(clientQuery.toLowerCase())
-    );
-    setFilteredClients(filtered);
-  }, [clientQuery, clients]);
-
-  useEffect(() => {
-    const filtered = services.filter(s =>
-      s.name.toLowerCase().includes(serviceQuery.toLowerCase())
-    );
-    setFilteredServices(filtered);
-  }, [serviceQuery, services]);
+  // =================== RENDER ===================
+  const closeSuggestions = () => {
+    Keyboard.dismiss();
+    setFilteredClients([]);
+    setFilteredServices([]);
+  };
 
   return (
-    <TouchableWithoutFeedback onPress={() => {
-      Keyboard.dismiss();
-      setFilteredClients([]);
-      setFilteredServices([]);
-    }}>
+    <TouchableWithoutFeedback onPress={closeSuggestions}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
         <Container>
-          <BackButton onPress={handleBackButton}>
+          <BackButton onPress={() => navigation.goBack()}>
             <BackIcon width="45px" height="45px" fill="#333" />
           </BackButton>
+
           <Logo source={require('../../../assets/images/Logo-branco.png')} resizeMode="contain" />
 
           <Calendar
@@ -232,6 +250,7 @@ export default function CalendarScreen() {
 
           {loading && <LoadingIcon size="large" color="#FFFFFF" />}
 
+          {/* CLIENTE */}
           <Label>Cliente</Label>
           <PickerInput>
             <SearchInput
@@ -240,24 +259,26 @@ export default function CalendarScreen() {
               onChangeText={setClientQuery}
             />
           </PickerInput>
+
           {filteredClients.length > 0 && clientQuery.length > 0 && (
             <SuggestionList>
-              {filteredClients.map(client => (
+              {filteredClients.map(c => (
                 <SuggestionItem
-                  key={client.id}
+                  key={c.id}
                   onPress={() => {
-                    setSelectedClient(client.id);
-                    setClientQuery(client.name);
+                    setSelectedClient(c.id);
+                    setClientQuery(c.name);
                     setFilteredClients([]);
                     Keyboard.dismiss();
                   }}
                 >
-                  <SuggestionText>{client.name}</SuggestionText>
+                  <SuggestionText>{c.name}</SuggestionText>
                 </SuggestionItem>
               ))}
             </SuggestionList>
           )}
 
+          {/* SERVIÇO */}
           <Label>Serviço</Label>
           <PickerInput>
             <SearchInput
@@ -266,52 +287,83 @@ export default function CalendarScreen() {
               onChangeText={setServiceQuery}
             />
           </PickerInput>
+
           {filteredServices.length > 0 && serviceQuery.length > 0 && (
             <SuggestionList>
-              {filteredServices.map(service => (
+              {filteredServices.map(s => (
                 <SuggestionItem
-                  key={service.id}
+                  key={s.id}
                   onPress={() => {
-                    setSelectedService(service.id);
-                    setServiceQuery(service.name);
+                    setSelectedService(s.id);
+                    setServiceQuery(s.name);
                     setFilteredServices([]);
                     Keyboard.dismiss();
                   }}
                 >
-                  <SuggestionText>{service.name}</SuggestionText>
+                  <SuggestionText>{s.name}</SuggestionText>
                 </SuggestionItem>
               ))}
             </SuggestionList>
           )}
 
+          {/* HORÁRIOS */}
           <Label>Horários disponíveis</Label>
+
           <HourScroll horizontal showsHorizontalScrollIndicator={false}>
-            {mockHours.map(hour => (
-              <HourButton
-                key={hour}
-                selected={selectedHour === hour}
-                onPress={() => setSelectedHour(hour)}
-              >
-                <HourText selected={selectedHour === hour}>{hour}</HourText>
-              </HourButton>
-            ))}
+            {availabilityHours.length === 0 && !loadingHours ? (
+              <HourText>Nenhum horário disponível</HourText>
+            ) : (
+              availabilityHours.map(h => {
+                const active = h.active?.toString().trim().toLowerCase() === "true";
+                const booked = h.booked?.toString().trim().toLowerCase() === "true";
+
+                const isDisabled = active || booked;
+                const isSelected = selectedHour === h.time;
+
+                return (
+                  <HourButton
+                    key={h.time}
+                    selected={isSelected}
+                    disabled={isDisabled}
+                    onPress={() => {
+                      if (isDisabled) {
+                        Alert.alert('Horário indisponível');
+                        return;
+                      }
+                      setSelectedHour(h.time);
+                    }}
+                    style={{ opacity: isDisabled ? 0.3 : 1 }}
+                  >
+                    <HourText selected={isSelected}>
+                      {h.time}
+                      {active ? " (ocupado)" : ""}
+                      {booked ? " (ocupado)" : ""}
+                    </HourText>
+                  </HourButton>
+                );
+              })
+            )}
           </HourScroll>
 
+
+
+
+
+          {loadingHours && <LoadingIcon size="small" color="#FFF" />}
+
+          {/* FINALIZAR */}
           <ConfirmButton onPress={handleFinalize}>
             <ConfirmButtonText>Finalizar Agendamento</ConfirmButtonText>
           </ConfirmButton>
 
-          <Modal
-            transparent
-            animationType="slide"
-            visible={modalVisible}
-            onRequestClose={() => setModalVisible(false)}
-          >
+          {/* MODAL */}
+          <Modal transparent animationType="slide" visible={modalVisible}>
             <ModalBackground>
               <ModalContent>
                 <ModalTitle>Confirmar Agendamento?</ModalTitle>
-                <Text>Cliente: {clients.find(c => c.id === selectedClient)?.name || 'Não encontrado'}</Text>
-                <Text>Serviço: {services.find(s => s.id === selectedService)?.name || 'Não encontrado'}</Text>
+
+                <Text>Cliente: {clients.find(c => c.id === selectedClient)?.name}</Text>
+                <Text>Serviço: {services.find(s => s.id === selectedService)?.name}</Text>
                 <Text>Data: {formatDateForDisplay(selectedDate)}</Text>
                 <Text>Horário: {selectedHour}</Text>
 
@@ -319,6 +371,7 @@ export default function CalendarScreen() {
                   <CancelButton onPress={() => setModalVisible(false)}>
                     <CancelButtonText>Cancelar</CancelButtonText>
                   </CancelButton>
+
                   <OkButton onPress={confirmAppointment}>
                     <OkButtonText>Confirmar</OkButtonText>
                   </OkButton>

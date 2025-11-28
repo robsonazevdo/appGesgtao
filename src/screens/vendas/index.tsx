@@ -1,28 +1,53 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import ComandasScreen from '../../screens/comanda';
-import FinalizarScreen from '../../screens/Finalizar';
-import CaixaScreen from '../../screens/Caixa';
-import RelatorioScreen from '../../screens/Relatorio';
-import { Ionicons } from '@expo/vector-icons';
+import { FlatList } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-const Tab = createBottomTabNavigator();
+import NextIcon from '../../../assets/images/nav_next.svg';
+import { Container, Logo, Card, CardText } from './styles';
 
-export default function VendasTabs() {
+type RootStackParamList = {
+  Comandas: undefined;
+  Finalizar: undefined;
+  Caixa: undefined;
+  Relatorio: undefined;
+};
+
+const options = [
+  { key: 'Comandas', label: 'Abrir Comanda', Icon: NextIcon },
+  { key: 'Finalizar', label: 'Finalizar Venda', Icon: NextIcon },
+  { key: 'Caixa', label: 'Caixa', Icon: NextIcon },
+  { key: 'Relatorio', label: 'Relatórios', Icon: NextIcon },
+];
+
+export default function VendaScreen() {
+  type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+  const navigation = useNavigation<NavigationProp>();
+
+  const handlePress = (key: string) => {
+    navigation.navigate(key as any);
+  };
+
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="Comandas" component={ComandasScreen} options={{
-        tabBarIcon: ({ color }) => <Ionicons name="clipboard-outline" size={20} color={color} />
-      }} />
-      <Tab.Screen name="Finalizar" component={FinalizarScreen} options={{
-        tabBarIcon: ({ color }) => <Ionicons name="checkmark-done-outline" size={20} color={color} />
-      }} />
-      <Tab.Screen name="Caixa" component={CaixaScreen} options={{
-        tabBarIcon: ({ color }) => <Ionicons name="cash-outline" size={20} color={color} />
-      }} />
-      <Tab.Screen name="Relatórios" component={RelatorioScreen} options={{
-        tabBarIcon: ({ color }) => <Ionicons name="analytics-outline" size={20} color={color} />
-      }} />
-    </Tab.Navigator>
+    <Container>
+      <Logo
+        source={require('../../../assets/images/Logo-branco.png')}
+        resizeMode="contain"
+      />
+
+      <FlatList
+        data={options}
+        keyExtractor={(item) => item.key}
+        renderItem={({ item }) => {
+          const Icon = item.Icon;
+          return (
+            <Card onPress={() => handlePress(item.key)}>
+              <CardText>{item.label}</CardText>
+              <Icon width={32} height={32} fill="#b4918f" style={{ marginLeft: 'auto' }} />
+            </Card>
+          );
+        }}
+      />
+    </Container>
   );
 }
