@@ -1,26 +1,35 @@
 // components/CancelModal.tsx
 import React from 'react';
 import { Modal } from 'react-native';
-// eslint-disable-next-line import/no-named-as-default
 import styled from 'styled-components/native';
 
 type Props = {
   visible: boolean;
+  title?: string;
+  message?: string;
   onCancel: () => void;
   onConfirm: () => void;
 };
 
-export default function CancelModal({ visible, onCancel, onConfirm }: Props) {
+export default function CancelModal({
+  visible,
+  title = "Cancelar Agendamento",
+  message = "Deseja realmente cancelar este agendamento?",
+  onCancel,
+  onConfirm
+}: Props) {
   return (
     <Modal transparent visible={visible} animationType="fade">
       <Overlay>
         <ModalBox>
-          <Title>Cancelar Agendamento</Title>
-          <Message>Deseja realmente cancelar este agendamento?</Message>
+          <Title>{title}</Title>
+          <Message>{message}</Message>
+
           <ButtonRow>
             <CancelButton onPress={onCancel}>
               <ButtonText>Não</ButtonText>
             </CancelButton>
+
             <ConfirmButton onPress={onConfirm}>
               <ButtonText style={{ color: '#fff' }}>Sim</ButtonText>
             </ConfirmButton>

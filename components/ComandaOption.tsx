@@ -22,7 +22,7 @@ const LeftRow = styled(View)`
 `;
 
 const CardText = styled.Text`
-  font-size: 18px;
+  font-size: 16px;
   color: #b4918f;
 `;
 
@@ -35,7 +35,7 @@ const Button = styled.TouchableOpacity`
 
 const ButtonText = styled.Text`
   color: white;
-  font-size: 14px;
+  font-size: 12px;
 `;
 
 interface ComandaOptionCardProps {
@@ -59,7 +59,7 @@ const ComandaOptionCard: React.FC<ComandaOptionCardProps> = ({
 
         {/* Ícone + Nome + Número */}
         <LeftRow>
-          <Icon width={32} height={32} fill="#b4918f" style={{ marginRight: 15 }} />
+          <Icon width={30} height={30} fill="#b4918f" style={{ marginRight: 10 }} />
 
           <View>
             <CardText>{label}</CardText>
@@ -74,7 +74,7 @@ const ComandaOptionCard: React.FC<ComandaOptionCardProps> = ({
           </Button>
 
           <Button onPress={onFinish}>
-            <ButtonText>Finalizar</ButtonText>
+            <ButtonText>Ad. Item</ButtonText>
           </Button>
         </LeftRow>
 

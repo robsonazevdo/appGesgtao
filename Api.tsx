@@ -361,20 +361,56 @@ deleteClient: async ({ client_id }: { client_id: number }) => {
     return json;
   },
 
-  getServiceSerch: async (data: { name: string }) => {
+
+  get_full_services: async (barber_id: number | null ): Promise<GetBarbersResponse> => {
     const token = await AsyncStorage.getItem('token');
-    const req = await fetch(`${BASE_API}/service/name`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ name: data.name }),
-    });
-  const json = await req.json();
-  return json; 
+    
+    const req = await fetch(`${BASE_API}/service/full`, {
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });;
+    const json = await req.json();
+    return json;
+  },
+
+
+  getServicesByBarberSearch: async (data: { barber_id: number }) => {
+  const token = await AsyncStorage.getItem('token');
+
+  const req = await fetch(`${BASE_API}/service/barber/search`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  return await req.json();
 },
+
+  
+getServiceSearch: async (data: { name: string }) => {
+  const token = await AsyncStorage.getItem('token');
+
+  const req = await fetch(`${BASE_API}/service/barber_service/name`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name: data }),
+  });
+
+  const json = await req.json();
+  return json;
+},
+
 
 UpdateService: async (data: { id: number; name: string;}) => {
   try {
@@ -736,21 +772,32 @@ getComandaItems: async (id: any) => {
 
 cancelComanda: async (id: any) => {
   const token = await AsyncStorage.getItem('token');
-  const req = await fetch(`${BASE_API}/comandas/${id}/cancel`, {
-    method: "POST",
+  const req = await fetch(`${BASE_API}/orders/${id}/cancel`, {
+    method: "DELETE",
     headers: { Authorization: `Bearer ${token}` }
   });
   return req.json();
 },
 
-finishComanda: async (id: any) => {
-  const token = await AsyncStorage.getItem('token');
-  const req = await fetch(`${BASE_API}/comandas/${id}/finish`, {
+
+finalizarComanda: async (order_number: string, forma_pagamento: string, desconto: number) => {
+  const token = await AsyncStorage.getItem("token");
+  
+  const req = await fetch(`${BASE_API}/orders/number/${order_number}/finalizar`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` }
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      forma_pagamento,
+      desconto,
+    }),
   });
-  return req.json();
+
+  return await req.json();
 },
+
 
 
 getOrdersSeach: async ( ): Promise<GetBarbersResponse> => {
@@ -767,7 +814,104 @@ getOrdersSeach: async ( ): Promise<GetBarbersResponse> => {
     return json;
   },
 
+createOrders: async (data: {
+  client_id: number;
+  barber_id: number;
+  order_number: string;
+}): Promise<any> => {
+  const token = await AsyncStorage.getItem('token');
 
+  const req = await fetch(`${BASE_API}/orders/create`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  const json = await req.json();
+  return json;
+},
+
+
+addItemToOrder: async (body: any) => {
+  const token = await AsyncStorage.getItem('token');
+
+  const req = await fetch(`${BASE_API}/orders/add-item`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  return req.json();
+},
+
+getOrder: async (id: any) => {
+  const token = await AsyncStorage.getItem('token');
+
+  const req = await fetch(`${BASE_API}/orders/${id}/items`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  return await req.json();
+},
+
+
+createOrderItem: async (data: {
+
+  comanda_id: number,
+      service_id: number,
+      client_id: number,
+      barber_id: number,
+      qtd: number
+}): Promise<any> => {
+  const token = await AsyncStorage.getItem('token');
+
+  const req = await fetch(`${BASE_API}/orders/item`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  const json = await req.json();
+  return json;
+},
+
+deleteOrderItem: async (order_id: any, item_id: any) => {
+  const token = await AsyncStorage.getItem('token');
+  const req = await fetch(`${BASE_API}/orders/${order_id}/items/${item_id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return req.json();
+},
+
+getOrderByNumber: async (order_number: any) => {
+  const token = await AsyncStorage.getItem('token');
+
+  const req = await fetch(`${BASE_API}/orders/number/${order_number}`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+    }
+  });
+
+  return await req.json();
+},
 
 
 };

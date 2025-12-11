@@ -25,6 +25,7 @@ import ComandasScreen from '../screens/comanda';
 import FinalizarScreen from '../screens/Finalizar';
 import CaixaScreen from '../screens/Caixa';
 import RelatorioScreen from '../screens/Relatorio';
+import AddItemScreen from '../screens/addItem/AddItemScreen';
 
 
 
@@ -80,6 +81,7 @@ export default function Navigation() {
         <Stack.Screen name="Finalizar" component={FinalizarScreen} />
         <Stack.Screen name="Caixa" component={CaixaScreen} />
         <Stack.Screen name="Relatorio" component={RelatorioScreen} />
+        <Stack.Screen name="AddItem" component={AddItemScreen} />
 
       </Stack.Navigator>
     </NavigationContainer>

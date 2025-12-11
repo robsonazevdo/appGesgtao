@@ -12,10 +12,7 @@ export const Container = styled(LinearGradient).attrs({
  padding:20px;
 `;
 
-export const Scroller = styled.ScrollView`
-    flex: 1;
-    padding: 20px;
-`;
+
 
 export const Logo = styled.Image`
     width: 100%;
@@ -35,10 +32,11 @@ export const BackButton = styled.TouchableOpacity`
 `;
 
 export const FormArea = styled.View`
-    margin-top:25px;
-    margin-bottom: auto;
-    
+  flex: 1;
+  width: 100%;
+  padding: 20px;
 `;
+
 
 export const InfoAndButtonRow = styled.View`
   flex-direction: row;
@@ -98,3 +96,5 @@ export const TextplaceholderInput = styled.TextInput`
   margin-bottom: 5px;
   font-size: 16px;
 `;
+
+
