@@ -10,13 +10,16 @@ type RootStackParamList = {
   Comandas: undefined;
   Finalizar: undefined;
   Caixa: undefined;
+  FluxoMensal: undefined
   Relatorio: undefined;
 };
 
 const options = [
   { key: 'Comandas', label: 'Abrir Comanda', Icon: NextIcon },
   { key: 'Finalizar', label: 'Finalizar Venda', Icon: NextIcon },
-  { key: 'Caixa', label: 'Caixa', Icon: NextIcon },
+  { key: 'Caixa', label: 'Fluxo Diário', Icon: NextIcon },
+  { key: 'FluxoMensal', label: 'Fluxo mensal', Icon: NextIcon },
+  { key: 'Saidas', label: 'Saidas', Icon: NextIcon },
   { key: 'Relatorio', label: 'Relatórios', Icon: NextIcon },
 ];
 

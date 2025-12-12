@@ -913,6 +913,75 @@ getOrderByNumber: async (order_number: any) => {
   return await req.json();
 },
 
+getFluxoDiario: async ( ) => {
+  const token = await AsyncStorage.getItem('token');
+
+  const req = await fetch(`${BASE_API}/cashflow/daily`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+    }
+  });
+
+  return await req.json();
+},
+
+getFluxoMensal: async (p0: string ) => {
+  const token = await AsyncStorage.getItem('token');
+
+  const req = await fetch(`${BASE_API}/cashflow/monthly`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+    }
+  });
+
+  return await req.json();
+},
+
+
+createCashflowExit: async (data: {
+  descricao: string;
+  valor: number;
+  tipo: string;
+  date:string
+}): Promise<any> => {
+
+  const token = await AsyncStorage.getItem('token');
+
+  const req = await fetch(`${BASE_API}/cashflow/add`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  return await req.json();
+},
+
+getCashflowReport: async (month?: number, year?: number) => {
+  const token = await AsyncStorage.getItem('token');
+
+  const query = month && year 
+    ? `?month=${month}&year=${year}` 
+    : "";
+
+  const req = await fetch(`${BASE_API}/cashflow/report${query}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  return await req.json();
+},
+
 
 };
 

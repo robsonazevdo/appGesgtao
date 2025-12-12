@@ -24,8 +24,32 @@ import Venda from '../screens/vendas';
 import ComandasScreen from '../screens/comanda';
 import FinalizarScreen from '../screens/Finalizar';
 import CaixaScreen from '../screens/Caixa';
+import FluxoMensalScreen from '../screens/FluxoMensal';
+import Saidas from '../screens/NovoLancamento';
 import RelatorioScreen from '../screens/Relatorio';
 import AddItemScreen from '../screens/addItem/AddItemScreen';
+
+export type RootStackParamList = {
+  Preload: undefined;
+  SignIn: undefined;
+  SignUp: undefined;
+  Main: undefined;
+  HomeCliente: undefined;
+  HomeServico: undefined;
+  HomeProduto: undefined;
+  HomeEstoque: undefined;
+  HomePacotes: undefined;
+  HomeConfig: undefined;
+  clientes: undefined;
+  Agendamento: undefined;
+  Venda: undefined;
+  Comandas: undefined;
+  Finalizar: undefined;
+  Caixa: undefined;
+  FluxoMensal: undefined;
+  Relatorio: undefined;
+  AddItem: { comandaId: number } | undefined;
+};
 
 
 
@@ -80,6 +104,8 @@ export default function Navigation() {
         <Stack.Screen name="Comandas" component={ComandasScreen} />
         <Stack.Screen name="Finalizar" component={FinalizarScreen} />
         <Stack.Screen name="Caixa" component={CaixaScreen} />
+        <Stack.Screen name="FluxoMensal" component={FluxoMensalScreen} />
+        <Stack.Screen name="Saidas" component={Saidas} />
         <Stack.Screen name="Relatorio" component={RelatorioScreen} />
         <Stack.Screen name="AddItem" component={AddItemScreen} />
 
