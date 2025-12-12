@@ -207,8 +207,9 @@ const finalizarComanda = () => {
   navigation.navigate("Finalizar", {
 
     order_number: numero_comanda,
-    items: itens,   // lista de itens
-    total: subTotal   // total da comanda
+    items: itens,   
+    total: subTotal,
+    nome:  clientes
   });
 };
 

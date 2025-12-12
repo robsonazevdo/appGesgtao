@@ -4,6 +4,8 @@ import { View, Text, FlatList, Alert, Modal, ActivityIndicator, TextInput, Touch
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Print from "expo-print";
+import { WebView } from "react-native-webview";
+
 
 
 import Api from "../../../Api";
@@ -46,7 +48,11 @@ export default function FinalizarComandaScreen() {
   const [status, setStatus] = useState(params.status || "");
   const [items, setItems] = useState<any[]>(params.items || []);
   const [total, setTotal] = useState<number>(params.total || 0);
+  const [nomeCliente, setNomeCliente] = useState(
+  params?.nome?.[0]?.name ?? ""
+);
 
+  
   const [modalBuscaVisible, setModalBuscaVisible] = useState(false);
   const [codigoBusca, setCodigoBusca] = useState("");
 
@@ -57,7 +63,7 @@ export default function FinalizarComandaScreen() {
  const descontoNum = Number((desconto || "0").replace(",", ".")) || 0;
   const totalComDesconto = Math.max(0, total - descontoNum);
 
-
+  const dataAtual = new Date().toLocaleString("pt-BR");
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewHtml, setPreviewHtml] = useState<string>("");
 
@@ -90,14 +96,14 @@ export default function FinalizarComandaScreen() {
     setLoading(true);
     const res = await Api.getOrderByNumber(codigoBusca);
     setLoading(false);
-
+  
     if (!res || !res.items) {
       Alert.alert("Erro", "Comanda não encontrada.");
       return;
     }
 
     setOrderNumber((res.order_number ?? codigoBusca) || codigoBusca);
-
+    setNomeCliente(res.client_name)
     setItems(res.items || []);
     setStatus(res.status || "");
     // recalcula total
@@ -108,41 +114,103 @@ export default function FinalizarComandaScreen() {
     setModalBuscaVisible(false);
   };
 
-  // Gera HTML simples para preview/impressão
-  const buildReceiptHtml = () => {
-    const descontoNum = Number((desconto || "0").replace(",", "."));
-    const totalNum = Number(total) || 0;
-    const totalComDesconto = Math.max(0, totalNum - (isNaN(descontoNum) ? 0 : descontoNum));
+const buildReceiptHtml = () => {
+  const descontoNum = Number((desconto || "0").replace(",", "."));
+  const totalNum = Number(total) || 0;
+  const totalComDesconto = Math.max(0, totalNum - (isNaN(descontoNum) ? 0 : descontoNum));
 
-    const itensHtml = items.map((it: any) => `
-      <tr>
-        <td style="padding:6px 0;">${it.service_name}</td>
-        <td style="padding:6px 0;text-align:center;">${it.qtd}</td>
-        <td style="padding:6px 0;text-align:right;">R$ ${(Number(it.item_price)||0).toFixed(2)}</td>
-        <td style="padding:6px 0;text-align:right;">R$ ${((Number(it.item_price)||0)*Number(it.qtd)).toFixed(2)}</td>
-        <td style="text-align:right;font-weight:bold;"> R$ ${totalComDesconto.toFixed(2)}</td>
-      </tr>
-    `).join("");
+  const dataAtual = new Date().toLocaleString("pt-BR");
 
-    return `
-      <html>
-        <body style="font-family: sans-serif; padding:20px; color:#333;">
-          <h2>Recibo - Comanda ${orderNumber}</h2>
-          <table width="100%" style="border-collapse: collapse; margin-top:12px;">
+  const itensHtml = items.map((it) => `
+    <tr>
+      <td style="padding:8px 0;">${it.service_name}</td>
+      <td style="padding:8px 0; text-align:center;">${it.qtd}</td>
+      <td style="padding:8px 0; text-align:right;">R$ ${(Number(it.item_price)||0).toFixed(2)}</td>
+      <td style="padding:8px 0; text-align:right;">R$ ${((Number(it.item_price)||0)*Number(it.qtd)).toFixed(2)}</td>
+    </tr>
+  `).join("");
+
+  return `
+    <html>
+      <body style="font-family: Arial, sans-serif; color:#333; padding:20px;">
+
+        <!-- CABEÇALHO -->
+        <div style="
+          text-align:center;
+          padding:18px 0;
+          background: linear-gradient(to bottom, #b4918f, #956f6d);
+          color:white;
+          font-size:22px;
+          font-weight:bold;
+          border-radius:8px;
+          margin-bottom:15px;
+        ">
+          RECIBO
+        </div>
+
+        <!-- INFO DA COMANDA -->
+        <div style="
+          background:#f7f7f7;
+          border:1px solid #ddd;
+          padding:12px;
+          border-radius:8px;
+          margin-bottom:20px;
+          font-size:15px;
+        ">
+          <div><strong>Comanda Nº:</strong> ${orderNumber}</div>
+          <div><strong>Cliente:</strong> ${nomeCliente || "Não informado"}</div>
+          <div><strong>Data:</strong> ${dataAtual}</div>
+        </div>
+
+        <!-- TABELA DE ITENS -->
+        <table width="100%" style="border-collapse: collapse; font-size:14px;">
+          <thead>
+            <tr style="background: linear-gradient(to bottom, #b4918f, #956f6d); color:white;">
+              <th style="padding:10px; text-align:left;">Serviço</th>
+              <th style="padding:10px;">Qtd</th>
+              <th style="padding:10px; text-align:right;">Preço</th>
+              <th style="padding:10px; text-align:right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
             ${itensHtml}
-          </table>
+          </tbody>
+        </table>
 
-          <hr style="margin:12px 0;" />
+        <hr style="margin:25px 0; border-color:#ddd;" />
 
-          <p>Subtotal: R$ ${totalNum.toFixed(2)}</p>
-          <p>Desconto: R$ ${isNaN(descontoNum) ? "0.00" : descontoNum.toFixed(2)}</p>
-          <p><strong>Total: R$ ${totalComDesconto.toFixed(2)}</strong></p>
-          <p>Pagamento: ${formaPagamento || "-"}</p>
-          <p style="margin-top:18px;">Obrigado pela preferência!</p>
-        </body>
-      </html>
-    `;
-  };
+        <!-- RESUMO -->
+        <table width="100%" style="font-size:15px;">
+          <tr>
+            <td style="padding:6px 0;">Subtotal:</td>
+            <td style="text-align:right;">R$ ${totalNum.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;">Desconto:</td>
+            <td style="text-align:right;">R$ ${descontoNum.toFixed(2)}</td>
+          </tr>
+          <tr style="font-size:17px; font-weight:bold;">
+            <td style="padding:10px 0;">Total Final:</td>
+            <td style="text-align:right;">R$ ${totalComDesconto.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td style="padding-top:10px;">Forma de Pagamento:</td>
+            <td style="text-align:right; padding-top:10px;">${formaPagamento || "-"}</td>
+          </tr>
+        </table>
+
+        <div style="margin-top:25px; text-align:center; color:#777; font-size:13px;">
+          Obrigado pela preferência!<br />
+          <span style="font-size:12px;">Susana Alves</span>
+        </div>
+
+      </body>
+    </html>
+  `;
+};
+
+
+
 
   // Abre preview modal com HTML e permite imprimir
   const openPreview = () => {
@@ -225,31 +293,44 @@ const finalizar = async () => {
       {/* Modal Preview do recibo */}
       <Modal visible={previewVisible} animationType="slide" onRequestClose={() => setPreviewVisible(false)}>
         <View style={{ flex: 1, padding: 20, backgroundColor: "#fff" }}>
-          <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>Preview do Recibo</Text>
+          <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 12 }}>
+            Preview do Recibo
+          </Text>
 
-          <View style={{ flex: 1 }}>
-            {/* Render básico do HTML como texto — para visual rápida */}
-            <Text>{previewHtml.replace(/<[^>]+>/g, "").slice(0, 4000)}</Text>
+          <View style={{ flex: 1, borderWidth: 1, borderColor: "#ccc", borderRadius: 8, overflow: "hidden" }}>
+            <WebView
+              originWhitelist={["*"]}
+              source={{ html: previewHtml }}
+              style={{ flex: 1 }}
+              setSupportMultipleWindows={false}
+            />
           </View>
 
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 12 }}>
-            <TouchableOpacity onPress={() => setPreviewVisible(false)} style={{ padding: 12, backgroundColor: "#777", borderRadius: 8 }}>
+            <TouchableOpacity
+              onPress={() => setPreviewVisible(false)}
+              style={{ padding: 12, backgroundColor: "#777", borderRadius: 8 }}
+            >
               <Text style={{ color: "#fff" }}>Fechar</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={handlePrint} style={{ padding: 12, backgroundColor: "#b4918f", borderRadius: 8 }}>
+            <TouchableOpacity
+              onPress={handlePrint}
+              style={{ padding: 12, backgroundColor: "#b4918f", borderRadius: 8 }}
+            >
               <Text style={{ color: "#fff" }}>Imprimir / PDF</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
+
       <Header>
         <TitleH>Finalizar Comanda {orderNumber}</TitleH>
       </Header>
 
       <BackButton onPress={() => navigation.goBack()}>
-        <BackIcon width="45" height="45" fill="#fff" />
+        <BackIcon width="45" height="45" fill="#333" />
       </BackButton>
 
       <Logo source={require("../../../assets/images/Logo-branco.png")} resizeMode="contain" />
