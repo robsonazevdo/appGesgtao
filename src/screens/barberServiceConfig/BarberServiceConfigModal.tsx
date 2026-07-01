@@ -32,8 +32,8 @@ export default function BarberServiceConfigModal({ visible, onClose }: Props) {
       const barberData = await Api.getAllBarbers(); // Assuma que retorna { barbers: [...] }
       const serviceData = await Api.getServices(); // Assuma que retorna { service: [...] }
 
-      setBarbers(barberData.data || []);
-      setServices(serviceData.service || []);
+      setBarbers(barberData || []);
+      setServices(serviceData.data || []);
     };
 
     if (visible) {
@@ -48,7 +48,7 @@ export default function BarberServiceConfigModal({ visible, onClose }: Props) {
     }
     const res = await Api.setBarberService({
       barber_id: Number(selectedBarber),
-      name: selectedService,
+      //name: selectedService,
       price: Number(price),
       duration: Number(duration),
       service_id: Number(selectedService),

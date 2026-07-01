@@ -14,6 +14,7 @@ import {
   Logo,
   PickerInput,
   TextplaceholderInput,
+  TitleH
 } from './styles';
 
 import {
@@ -28,6 +29,7 @@ import ComandaOptionCard from '@/components/ComandaOption';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Toast from 'react-native-toast-message';
+
 
 type RootStackParamList = {
   Venda: undefined;
@@ -62,7 +64,7 @@ export default function ComandasScreen() {
     setError("");
 
     try {
-      const response = await Api.createOrders({
+      const response = await Api.createOrder({
         client_id: selectedClient,
         barber_id: 1,
         order_number: num
@@ -93,8 +95,8 @@ export default function ComandasScreen() {
   const loadClients = async () => {
     try {
       const json = await Api.getClients();
-      if (Array.isArray(json.client)) {
-        setClients(json.client);
+      if (Array.isArray(json)) {
+        setClients(json);
       }
     } catch {
       Alert.alert('Erro', 'Erro ao carregar clientes');
@@ -107,6 +109,7 @@ export default function ComandasScreen() {
   const loadOrders = async () => {
     try {
       const json = await Api.getOrdersSeach();
+     
       if (Array.isArray(json.data)) {
         setComandas(json.data);
       }
@@ -185,13 +188,14 @@ const initData = async () => {
         onConfirm={confirmCancel}
       />
 
+        <BackButton onPress={() => navigation.goBack()}>
+          <BackIcon width="45px" height="45px" fill="#333" />
+        </BackButton>
       
       <Logo source={require('../../../assets/images/Logo-branco.png')} resizeMode="contain" />
 
-      <BackButton onPress={() => navigation.goBack()}>
-        <BackIcon width="45px" height="45px" fill="#333" />
-      </BackButton>
-
+    
+      <TitleH>Comanda</TitleH>
      
 
       <FormArea>

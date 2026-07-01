@@ -16,7 +16,7 @@ const TabArea = styled.View`
   background-color: #b4918f;
   flex-direction: row;
   padding-bottom: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 69px;
 `;
 
 const TabItem = styled.TouchableOpacity`
@@ -79,7 +79,7 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, navigation }) => {
           fill="#FFFFFF"
         />
       </TabItem>
-      <TabItem onPress={() => goTo('Profile')}>
+      <TabItem onPress={() => goTo('Perfil')}>
         {user.avatar !== '' ? (
           
           <AvatarIcon source={{ uri: user.avatar }} />

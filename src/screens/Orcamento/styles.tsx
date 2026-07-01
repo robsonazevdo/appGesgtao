@@ -12,7 +12,13 @@ export const Container = styled(LinearGradient).attrs({
  padding:20px;
 `;
 
-
+export const PickerContainer = styled.View`
+  border-width: 1px;
+  border-color: #ddd;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+`;
 
 export const Logo = styled.Image`
     width: 100%;
@@ -20,6 +26,12 @@ export const Logo = styled.Image`
    margin-top: 73px;
 `;
 
+export const TitleH = styled.Text`
+  flex: 1;
+  text-align: center;
+  font-size: 26px;
+  font-weight: bold;
+`;
 
         
 export const BackButton = styled.TouchableOpacity`
@@ -109,7 +121,7 @@ export const Header = styled.View`
     margin-right: 20px;
 `;
 
-export const TitleH = styled.Text`
+export const Title = styled.Text`
   flex: 1;
   text-align: center;
   font-size: 26px;
@@ -188,7 +200,7 @@ export const FinishButton = styled.TouchableOpacity`
   padding: 14px;
   margin-top: 20px;
   border-radius: 8px;
-    margin-bottom: 45px;
+    margin-bottom: 2px;
 `
 
 
@@ -202,7 +214,6 @@ export const FinishText = styled.Text`
   color: #fff;
   font-size: 18px;
   text-align: center;
-  
 `;
 
 

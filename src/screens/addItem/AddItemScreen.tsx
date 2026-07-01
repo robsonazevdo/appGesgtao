@@ -6,7 +6,7 @@ import BackIcon from "../../../assets/images/back.svg";
 import {
   Container,
   Header,
-  Title,
+  TitleH,
   Row,
   Label,
   ValueBox,
@@ -80,6 +80,8 @@ export default function AddItemScreen() {
     return Number.isFinite(n) ? n : 0;
   }, []);
 
+
+  
   // CARREGAR ITENS (passa a comandaId real)
   const loadItems = useCallback(async (id: number | null) => {
     try {
@@ -91,7 +93,7 @@ export default function AddItemScreen() {
 
       const json = await Api.getOrder(id);
 
-      const itemsArr = Array.isArray(json?.items) ? json.items : [];
+      const itemsArr = Array.isArray(json.items) ? json.items : [];
       setItens(itemsArr);
 
       let total = 0;
@@ -128,9 +130,9 @@ export default function AddItemScreen() {
     try {
       const json = await Api.getClients();
      
-      if (Array.isArray(json.client)) {
-        setClientes(json.client);
-        const existe = json.client.find((c: any) => c.id == client_id);
+      if (Array.isArray(json)) {
+        setClientes(json);
+        const existe = json.find((c: any) => c.id == client_id);
         if (existe) setClienteSelecionado(existe.id);
       }
     } catch (e) {
@@ -142,14 +144,14 @@ export default function AddItemScreen() {
   // CARREGAR SERVIÇOS DO BARBEIRO
   const loadServices = async () => {
     try {
-      const json = await Api.getServicesByBarberSearch({ barber_id });
-      
+      const json = await Api.getServicesByBarberSearch({ data: { barber_id: 1 } });
       if (Array.isArray(json.data)) setServicos(json.data);
     } catch (e) {
       console.error("Erro loadServices:", e);
       Alert.alert("Erro", "Erro ao carregar serviços");
     }
   };
+
 
   const criarItem = async () => {
     if (!servicoSelecionado) {
@@ -205,7 +207,6 @@ export default function AddItemScreen() {
 const finalizarComanda = () => {
   
   navigation.navigate("Finalizar", {
-
     order_number: numero_comanda,
     items: itens,   
     total: subTotal,
@@ -310,7 +311,7 @@ const finalizarComanda = () => {
       </BackButton>
 
       <Header>
-        <Title>Comanda {numero_comanda}</Title>
+        <TitleH>Comanda {numero_comanda}</TitleH>
       </Header>
 
       {/* CLIENTE + SUBTOTAL */}

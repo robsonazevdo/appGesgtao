@@ -1,20 +1,21 @@
+import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { Alert, FlatList, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import BackIcon from '../../assets/images/back.svg';
 import Api from '../../Api';
+import BackIcon from '../../assets/images/back.svg';
+import SaveIcon from '../../assets/images/check.svg';
 
+import { HeaderButton } from '@/src/screens/barberServiceConfig/styles';
+import { Logo } from '../package/styles';
 import {
-  Container,
-  Header,
-  Title,
   BackButton,
+  Container,
   DayCard,
   DayText,
+  Header,
   HourButton,
   HourText,
-  SaveButton,
-  SaveButtonText,
+  Title
 } from './styles';
 
 export default function BarberScheduleConfig() {
@@ -45,12 +46,20 @@ export default function BarberScheduleConfig() {
   // ==== HORÁRIOS PADRÃO ====
   const generateDailyHours = () => {
     const hours = [];
-    for (let h = 8; h <= 18; h++) {
+    const startHour = 8;
+    const endHour = 20;
+
+    for (let h = startHour; h < endHour; h++) {
       hours.push({
         time: `${String(h).padStart(2, '0')}:00`,
         active: true,
       });
+      hours.push({
+        time: `${String(h).padStart(2, '0')}:30`,
+        active: true,
+      });
     }
+
     return hours;
   };
 
@@ -58,74 +67,144 @@ export default function BarberScheduleConfig() {
   useEffect(() => {
     const loadBarbers = async () => {
       const res = await Api.getAllBarbers();
-      setBarberList(res.data || []);
+      setBarberList(res || []);
     };
     loadBarbers();
 
     setWeek(generateWeek());
   }, []);
 
-  // ==== TOGGLE HORA ====
+  // ==== TOGGLE HORA (CORRIGIDO) ====
   const toggleHour = (dayIndex: number, hourIndex: number) => {
-    const newWeek = [...week];
-    newWeek[dayIndex].hours[hourIndex].active =
-      !newWeek[dayIndex].hours[hourIndex].active;
-
-    setWeek(newWeek);
+    setWeek(prevWeek => {
+      const newWeek = [...prevWeek];
+      
+      // Verificações de segurança
+      if (!newWeek[dayIndex] || !newWeek[dayIndex].hours[hourIndex]) {
+        return prevWeek;
+      }
+      
+      newWeek[dayIndex].hours[hourIndex].active =
+        !newWeek[dayIndex].hours[hourIndex].active;
+      
+      return newWeek;
+    });
   };
 
- const handleSave = async () => {
-  if (!selectedBarber) {
-    Alert.alert("Selecione um barbeiro!");
-    return;
-  }
-
-  try {
-    const res = await Api.saveSchedule({
-      barber_id: selectedBarber.id,
-      week: week
-    });
-
-    if (res.success) {
-      Alert.alert("Sucesso", "Horários salvos!");
-    } else {
-      Alert.alert("Erro", res.error || "Falha ao salvar.");
+  const handleSave = async () => {
+    if (!selectedBarber) {
+      Alert.alert("Selecione um barbeiro!");
+      return;
     }
 
-  } catch (err) {
-    Alert.alert("Erro", "Não foi possível salvar.");
-  }
-};
+    try {
+      const res = await Api.saveSchedule({
+        barber_id: selectedBarber.id,
+        week: week
+      });
 
+      if (res.success) {
+        Alert.alert("Sucesso", "Horários salvos!");
+      } else {
+        Alert.alert("Erro", res.error || "Falha ao salvar.");
+      }
+
+    } catch (err) {
+      Alert.alert("Erro", "Não foi possível salvar.");
+    }
+  };
+
+  // Função para renderizar os horários de forma segura
+  const renderHours = ({
+    item: hourItem,
+    index: hourIndex,
+    dayIndex,
+  }: {
+    item: { time: string; active: boolean };
+    index: number;
+    dayIndex: number;
+  }) => {
+    // Verificação de segurança
+    if (!hourItem) return null;
+    
+    return (
+      <HourButton
+        active={hourItem.active}
+        onPress={() => toggleHour(dayIndex, hourIndex)}
+      >
+        <HourText active={hourItem.active}>{hourItem.time}</HourText>
+      </HourButton>
+    );
+  };
+
+  // Renderizar cada dia
+  const renderDay = ({ item, index: dayIndex }: { item: { date: string; hours: { time: string; active: boolean }[] } | any; index: number }) => {
+    // Verificação de segurança
+    if (!item || !item.hours || !Array.isArray(item.hours)) {
+      return null;
+    }
+
+    return (
+      <DayCard>
+        <DayText>{item.date}</DayText>
+
+        <FlatList
+          data={item.hours}
+          keyExtractor={(hour, hourIdx) => `${item.date}-${hour.time}-${hourIdx}`}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          renderItem={({ item: hourItem, index: hourIndex }) => (
+            <HourButton
+              active={hourItem?.active ?? false}
+              onPress={() => {
+                if (hourItem) {
+                  toggleHour(dayIndex, hourIndex);
+                }
+              }}
+            >
+              <HourText active={hourItem?.active ?? false}>
+                {hourItem?.time ?? '--:--'}
+              </HourText>
+            </HourButton>
+          )}
+        />
+      </DayCard>
+    );
+  };
 
   return (
-    <Container>
-      {/* ----- HEADER ----- */}
-      <Header>
-        <BackButton onPress={() => navigation.goBack()}>
+    <Container colors={['#ffffff', '#fafafa']}>
+
+      <Logo source={require('../../assets/images/Logo-branco.png')} resizeMode="contain" />
+    
+    <Header>
+          <BackButton onPress={() => navigation.goBack()}>
           <BackIcon width={40} height={40} fill="#fff" />
         </BackButton>
         <Title>Configurar Horários</Title>
-      </Header>
+        <HeaderButton onPress={handleSave}><SaveIcon width={24} height={24} fill="#fff" /></HeaderButton>
+    </Header>
+        
+   
 
       {/* ----- LISTA DE BARBEIROS ----- */}
       <FlatList
         data={barberList}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
         horizontal
         style={{ marginVertical: 10 }}
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => setSelectedBarber(item)}
             style={{
-              padding: 12,
-              backgroundColor: selectedBarber?.id === item.id ? '#b4918f' : '#eee',
-              marginRight: 10,
+              padding: 5,
+              backgroundColor: selectedBarber?.id === item?.id ? '#b4918f' : '#eee',
+              
               borderRadius: 12,
             }}
           >
-            <DayText style={{ color: selectedBarber?.id === item.id ? '#fff' : '#333' }}>
-              {item.name}
+            <DayText style={{ color: selectedBarber?.id === item?.id ? '#fff' : '#561c1c' }}>
+              {item?.name || 'Sem nome'}
             </DayText>
           </TouchableOpacity>
         )}
@@ -134,32 +213,15 @@ export default function BarberScheduleConfig() {
       {/* ----- SEMANA ----- */}
       <FlatList
         data={week}
-        keyExtractor={(item) => item.date}
-        renderItem={({ item, index }) => (
-          <DayCard>
-            <DayText>{item.date}</DayText>
-
-            <FlatList
-              data={item.hours}
-              keyExtractor={(h) => h.time}
-              horizontal
-              renderItem={({ item: h, hourIndex }) => (
-                <HourButton
-                  active={h.active}
-                  onPress={() => toggleHour(index, hourIndex)}
-                >
-                  <HourText active={h.active}>{h.time}</HourText>
-                </HourButton>
-              )}
-            />
-          </DayCard>
-        )}
+        keyExtractor={(item, index) => item?.date || `day-${index}`}
+        renderItem={renderDay}
+        
       />
 
       {/* ----- BOTÃO SALVAR ----- */}
-      <SaveButton onPress={handleSave}>
+      {/* <SaveButton onPress={handleSave}>
         <SaveButtonText>Salvar Configuração</SaveButtonText>
-      </SaveButton>
+      </SaveButton> */}
     </Container>
   );
 }

@@ -7,6 +7,7 @@ import React from 'react';
 
 import HomeCliente from '@/pages/clientes';
 import HomeServico from '@/pages/servicos';
+import HomeColaborador from '../../pages/colaborador';
 import HomeProduto from '@/pages/produtos';
 import HomeEstoque from '@/pages/estoque';
 import HomePacotes from '@/pages/package';
@@ -21,6 +22,7 @@ import Preload from '../screens/preload';
 import SignIn from '../screens/SignIn';
 import SignUp from '../screens/SignUp';
 import Venda from '../screens/vendas';
+import Perfil from '../screens/Perfil';
 import ComandasScreen from '../screens/comanda';
 import FinalizarScreen from '../screens/Finalizar';
 import CaixaScreen from '../screens/Caixa';
@@ -28,6 +30,8 @@ import FluxoMensalScreen from '../screens/FluxoMensal';
 import Saidas from '../screens/NovoLancamento';
 import RelatorioScreen from '../screens/Relatorio';
 import AddItemScreen from '../screens/addItem/AddItemScreen';
+import Orcamento from '../screens/Orcamento';
+import Historico from '../screens/historico';
 
 export type RootStackParamList = {
   Preload: undefined;
@@ -57,7 +61,7 @@ export type MainTabParamList = {
   Início: undefined;
   Cadastro: undefined;
   Appointments: undefined;
-  Profile: undefined;
+  Perfil: undefined;
   Agenda: undefined;
   Agendamento: undefined;
   Venda: undefined;
@@ -78,8 +82,8 @@ function MainTabs() {
       <Tab.Screen name="Cadastro" component={Cadastro} />
       <Tab.Screen name="Agenda" component={AgendaScreen} />
       <Tab.Screen name="Venda" component={Venda} />
-      {/*<Tab.Screen name="Serviços" component={ServicosScreen} />
-      <Tab.Screen name="Perfil" component={PerfilScreen} /> */}
+      {/* <Tab.Screen name="Serviços" component={ServicosScreen} /> */}
+      <Tab.Screen name="Perfil" component={Perfil} />
     </Tab.Navigator>
   );
 }
@@ -94,6 +98,7 @@ export default function Navigation() {
         <Stack.Screen name="Main" component={MainTabs} />
         <Stack.Screen name="HomeCliente" component={HomeCliente} />
         <Stack.Screen name="HomeServico" component={HomeServico} />
+        <Stack.Screen name="HomeColaborador" component={HomeColaborador} />
         <Stack.Screen name="HomeProduto" component={HomeProduto} />
         <Stack.Screen name="HomeEstoque" component={HomeEstoque} />
         <Stack.Screen name="HomePacotes" component={HomePacotes} />
@@ -108,6 +113,8 @@ export default function Navigation() {
         <Stack.Screen name="Saidas" component={Saidas} />
         <Stack.Screen name="Relatorio" component={RelatorioScreen} />
         <Stack.Screen name="AddItem" component={AddItemScreen} />
+        <Stack.Screen name="Orcamento" component={Orcamento} />
+        <Stack.Screen name="Historico" component={Historico} />
 
       </Stack.Navigator>
     </NavigationContainer>

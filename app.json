@@ -16,13 +16,13 @@
         "foregroundImage": "./assets/images/Logo-colorido.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.robsonazevedo42.appSugestao"
     },
     "web": {
       "bundler": "metro"
     },
     "plugins": [
-      
       [
         "expo-splash-screen",
         {
@@ -35,6 +35,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ee31262b-a459-48b6-92df-2a126af70d55"
+      }
     }
   }
 }

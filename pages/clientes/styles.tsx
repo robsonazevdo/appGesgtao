@@ -12,6 +12,21 @@ export const Container = styled(LinearGradient).attrs({
  padding:20px;
 `;
 
+export const ScrollContainer = styled.ScrollView`
+  flex: 1;
+  
+`;
+
+export const ContentContainer = styled.View`
+  padding-bottom: 30px;
+`;
+
+export const IconTextSmall = styled.Text`
+  font-size: 12px;
+  color: #666;
+  margin-left: 8px;
+`;
+
 export const Scroller = styled.ScrollView`
     flex: 1;
     padding: 20px;

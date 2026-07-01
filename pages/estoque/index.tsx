@@ -22,7 +22,7 @@ import {
   InfoAndButtonRow,
   InfoColumn,
   InfoRow,
-  Logo
+  Logo,
 } from './styles';
 
 import ClientOptionCard from '../../components/ClientOption';
@@ -31,13 +31,15 @@ import SearchModal from '@/components/SearchModal';
 import { LoadingIcon } from '@/src/screens/home/styles';
 import { FormEditModal } from '@/components/BaseFormEditModal';
 import GenericFormModal from '@/components/GenericFormModal';
+import EstoqueListModal from '@/components/EstoqueListModal';
 
 
 const options = [
-  { key: 'Buscar Estoque', label: 'Buscar Estoque', Icon: SearchIcon },
+  
   { key: 'Cadastro Estoque', label: 'Cadastro Estoque', Icon: ProductIcon },
-  { key: 'Atualizar Dados', label: 'Atualizar Dados', Icon: PersonAddIcon },
+  { key: 'Atualizar', label: 'Atualizar', Icon: PersonAddIcon },
   { key: 'Delete Estoque', label: 'Delete Estoque', Icon: DeleteIcon },
+  { key: 'Listar Estoque', label: 'Listar Estoque', Icon: SearchIcon },
 ];
 
 
@@ -53,7 +55,8 @@ export default function HomeEstoque() {
   const [deleteList, setDeleteList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [productOptions, setProductOptions] = useState<any[]>([]);
-  
+  const [showEstoqueListModal, setShowEstoqueListModal] = useState(false);
+  const [selectedEstoque, setSelectedEstoque] = useState<any | null>(null);
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
@@ -74,14 +77,14 @@ export default function HomeEstoque() {
       setShowEstoqueModal(true);
     } else if (key === 'Buscar Estoque'){
       setShowSearchEstoqueModal(true);
-    }else if(key === 'Atualizar Dados'){
+    }else if(key === 'Atualizar'){
       setShowUpdateEstoqueModal(true);
     }else if (key === 'Delete Estoque'){
       setShowDeleteEstoqueModal(true);
-    }else 
-    {
-      navigation.navigate(key as never);
+    }else if (key === 'Listar Estoque'){
+      setShowEstoqueListModal(true);
     }
+  
   };
 
 const handleSaveEstoque = async (data: { product_id: number;
@@ -244,7 +247,7 @@ const handleStockDelet = (stockId: number) => {
             <InfoColumn>
               <InfoRow>
                 <IconText numberOfLines={1} ellipsizeMode="tail">
-                  {service.product}
+                  {service.product_name}
                 </IconText>
               </InfoRow>
             </InfoColumn>
@@ -282,7 +285,7 @@ const handleStockDelet = (stockId: number) => {
             <InfoColumn>
               <InfoRow>
                 <IconText numberOfLines={1} ellipsizeMode="tail">
-                  {stock.product}
+                  {stock.product_name}
                 </IconText>
               </InfoRow>
             </InfoColumn>
@@ -304,6 +307,7 @@ const handleStockDelet = (stockId: number) => {
         placeholder="Digite o nome Produto"
         onSearch={async (name) => {
           const res = await Api.getStockSerch({ name });
+          console.log(res.data)
           return res.data || [];
         } }
         onSelectItem={(service) => {
@@ -312,12 +316,57 @@ const handleStockDelet = (stockId: number) => {
 
         } }
         renderItem={(service) => (
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>{service.product}| Qtd. {service.quantity}</Text>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>{service.product_name}| Qtd. {service.quantity}</Text>
         )} lista={[]}        />
 
 
 
-
+      <EstoqueListModal
+        visible={showEstoqueListModal}
+        onClose={() => setShowEstoqueListModal(false)}
+        title="Lista de Estoque"
+        placeholder="Digite o nome do produto"
+        onSearch={async (name) => {
+          if (name && name.trim() !== '') {
+            const res = await Api.getStockSerch({ name });
+            return res || [];
+          } else {
+            const res = await Api.getStock();
+            return res || [];
+          }
+        }}
+        onSelectItem={(service) => {
+          setSelectedEstoque(service);
+          setShowEstoqueListModal(false);
+        }}
+        renderItem={(service) => (
+          <InfoAndButtonRow>
+            <InfoColumn>
+              <InfoRow>
+                <IconText numberOfLines={1} ellipsizeMode="tail">
+                  {service.name}
+                </IconText>
+              </InfoRow>
+              {service.loc && (
+                <InfoRow>
+                  <IconTextSmall numberOfLines={1} ellipsizeMode="tail">
+                    📍 {service.loc}
+                  </IconTextSmall>
+                </InfoRow>
+              )}
+              {service.stars && (
+                <InfoRow>
+                  <IconTextSmall>
+                    ⭐ {service.stars}
+                  </IconTextSmall>
+                </InfoRow>
+              )}
+            </InfoColumn>
+          </InfoAndButtonRow>
+        )}
+        lista={[]}
+        initialData={[]}
+      />
 
 
 
@@ -333,7 +382,7 @@ const handleStockDelet = (stockId: number) => {
   }}
               
               fields={[
-                { name: 'product', placeholder: 'Nome do pro', icon: PersonIcon },
+                { name: 'product_name', placeholder: 'Nome do produto', icon: PersonIcon },
                   { name: 'type', placeholder: 'Preço do Estoque', icon: PriceIcon },
                   { name: 'quantity', placeholder: 'Custo do Estoque', icon: DollarIcon },
                   { name: 'description', placeholder: 'Unidade', icon: PersonIcon },
@@ -351,7 +400,7 @@ const handleStockDelet = (stockId: number) => {
                   const json = await Api.UpdateStock({ ...srv });
                   
                   if (json.success) {
-                    setSelectedStock(json.service);
+                    setSelectedStock(json.product);
                     Alert.alert('Sucesso', 'Estoque atualizado com sucesso.');
                   } else {
                     Alert.alert('Erro', json.error || 'Erro ao atualizar serviço.');

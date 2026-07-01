@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
@@ -36,8 +37,6 @@ import {
 } from './styles';
 
 import Api from '@/Api';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import BackIcon from '../../../assets/images/back.svg';
 import { LoadingIcon } from '../home/styles';
@@ -61,12 +60,20 @@ LocaleConfig.locales['pt-br'] = {
 };
 LocaleConfig.defaultLocale = 'pt-br';
 
+const monthNamesPt = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
+
 // =================== HELPERS ===================
-const getToday = () => format(new Date(), 'yyyy-MM-dd');
+const getToday = () => new Date().toISOString().split('T')[0];
 
 const formatDateForDisplay = (dateStr: string) => {
   const date = new Date(dateStr + 'T12:00:00');
-  return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = monthNamesPt[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} de ${month} de ${year}`;
 };
 
 // =================== COMPONENT ===================
@@ -77,6 +84,7 @@ export default function CalendarScreen() {
 
   // =================== STATES ===================
   const [clientQuery, setClientQuery] = useState('');
+  const [colabQuery, setColabQuery] = useState('');
   const [filteredClients, setFilteredClients] = useState<any[]>([]);
 
   const [serviceQuery, setServiceQuery] = useState('');
@@ -84,8 +92,14 @@ export default function CalendarScreen() {
 
   const [selectedDate, setSelectedDate] = useState(getToday());
   const [clients, setClients] = useState<any[]>([]);
+  const [barbers, setBarbers] = useState<any[]>([]);
+  
   const [services, setServices] = useState<any[]>([]);
   const [selectedClient, setSelectedClient] = useState<string | number>('');
+
+  const [selectedBarber, setSelectedBarber] = useState<string | number>('');
+  const [filteredBarbers, setFilteredBarbers] = useState<any[]>([]);
+
   const [selectedService, setSelectedService] = useState<string | number>('');
   const [selectedHour, setSelectedHour] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
@@ -116,9 +130,10 @@ export default function CalendarScreen() {
   const loadClients = async () => {
     try {
       const json = await Api.getClients();
-      if (Array.isArray(json.client)) {
-        setClients(json.client);
-        if (json.client.length > 0) setSelectedClient(json.client[0].id);
+  
+      if (Array.isArray(json)) {
+        setClients(json);
+        if (json[0].length > 0) setSelectedClient(json[0].id);
       }
     } catch {
       Alert.alert('Erro', 'Erro ao carregar clientes');
@@ -128,10 +143,10 @@ export default function CalendarScreen() {
   const loadServices = async () => {
     try {
       const json = await Api.getServices();
-      if (Array.isArray(json.service)) {
-        setServices(json.service);
-        if (!selectedService && json.service.length > 0) {
-          setSelectedService(json.service[0].id);
+      if (Array.isArray(json.data)) {
+        setServices(json.data);
+        if (!selectedService && json.data.length > 0) {
+          setSelectedService(json.data[0].id);
         }
       }
     } catch {
@@ -139,9 +154,22 @@ export default function CalendarScreen() {
     }
   };
 
+    const loadBarbers = async () => {
+    try {
+      const json = await Api.getAllBarbers();
+  
+      if (Array.isArray(json)) {
+        setBarbers(json);
+        if (json[0].length > 0) setSelectedBarber(json[0].id);
+      }
+    } catch {
+      Alert.alert('Erro', 'Erro ao carregar barbeiros');
+    }
+  };
+
   const initData = async () => {
     setLoading(true);
-    await Promise.all([loadClients(), loadServices()]);
+    await Promise.all([loadClients(), loadServices(), loadBarbers()]);
     setLoading(false);
   };
 
@@ -173,6 +201,15 @@ export default function CalendarScreen() {
     );
   }, [serviceQuery, services]);
 
+
+  useEffect(() => {
+    setFilteredBarbers(
+      barbers.filter(s =>
+        s.name.toLowerCase().includes(colabQuery.toLowerCase())
+      )
+    );
+  }, [colabQuery, barbers]);
+
   // =================== FINALIZE ===================
   const handleFinalize = () => {
     if (!selectedHour) {
@@ -182,35 +219,80 @@ export default function CalendarScreen() {
     setModalVisible(true);
   };
 
-  const confirmAppointment = async () => {
-    setModalVisible(false);
+ const confirmAppointment = async () => {
+  // Validações
+  if (!selectedClient) {
+    Alert.alert('Erro', 'Selecione um cliente');
+    return;
+  }
+  if (!selectedBarber) {
+    Alert.alert('Erro', 'Selecione um barbeiro');
+    return;
+  }
+  if (!selectedService) {
+    Alert.alert('Erro', 'Selecione um serviço');
+    return;
+  }
+  if (!selectedDate) {
+    Alert.alert('Erro', 'Selecione uma data');
+    return;
+  }
+  if (!selectedHour) {
+    Alert.alert('Erro', 'Selecione um horário');
+    return;
+  }
 
-    if (!selectedClient || !selectedHour || !selectedService || !selectedDate) {
-      Alert.alert('Erro', 'Preencha todos os campos.');
+  setModalVisible(false);
+  setLoading(true);
+
+  try {
+    // Construir a data e hora completa
+    const datetime = `${selectedDate} ${selectedHour}:00`;
+    
+    // Obter o email do usuário logado
+    const userEmail = await AsyncStorage.getItem('userEmail');
+    if (!userEmail) {
+      Alert.alert('Erro', 'Usuário não está logado');
       return;
     }
-
-    const datetime = `${selectedDate} ${selectedHour}:00`;
-
-    try {
-      const result = await Api.createAppointment({
-        client_id: Number(selectedClient),
-        barber_id: 1,
-        service_id: Number(selectedService),
-        datetime,
-        service: 0
-      });
-
-      if (result.success) {
-        Alert.alert('Agendamento confirmado!');
-        navigation.goBack();
-      } else {
-        Alert.alert('Erro', result.error || 'Não foi possível agendar.');
-      }
-    } catch {
-      Alert.alert('Erro', 'Falha ao comunicar com servidor.');
+    
+    // Buscar a duração do serviço (opcional, a API pode buscar automaticamente)
+    const serviceInfo = await Api.getBarberServiceById(selectedBarber.id, selectedService.id);
+    const duration = serviceInfo?.data?.duration || 30;
+    
+    const appointmentData = {
+      client_id: Number(selectedClient.id || selectedClient),
+      barber_id: Number(selectedBarber.id || selectedBarber),
+      service_id: Number(selectedService.id || selectedService),
+      datetime: datetime,
+      user_email: userEmail,
+      duration: duration
+    };
+    
+    console.log('Enviando agendamento:', appointmentData);
+    
+    const result = await Api.createAppointment(appointmentData);
+    
+    if (result.success) {
+      Alert.alert('Sucesso', 'Agendamento confirmado com sucesso!');
+      // Limpar formulário
+      setSelectedClient(null);
+      setSelectedBarber(null);
+      setSelectedService(null);
+      setSelectedDate(null);
+      setSelectedHour(null);
+      // Navegar de volta
+      navigation.goBack();
+    } else {
+      Alert.alert('Erro', result.error || 'Não foi possível realizar o agendamento.');
     }
-  };
+  } catch (error) {
+    console.error('Erro ao confirmar agendamento:', error);
+    Alert.alert('Erro', 'Falha ao comunicar com o servidor.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // =================== RENDER ===================
   const closeSuggestions = () => {
@@ -218,6 +300,8 @@ export default function CalendarScreen() {
     setFilteredClients([]);
     setFilteredServices([]);
   };
+
+  
 
   return (
     <TouchableWithoutFeedback onPress={closeSuggestions}>
@@ -249,6 +333,34 @@ export default function CalendarScreen() {
           />
 
           {loading && <LoadingIcon size="large" color="#FFFFFF" />}
+
+                    
+          <Label>Colaborador</Label>
+          <PickerInput>
+            <SearchInput
+              placeholder="Digite o nome do colaborador"
+              value={colabQuery}
+              onChangeText={setColabQuery}
+            />
+          </PickerInput>
+
+          {filteredBarbers.length > 0 && colabQuery.length > 0 && (
+            <SuggestionList>
+              {filteredBarbers.map(c => (
+                <SuggestionItem
+                  key={c.id}
+                  onPress={() => {
+                    setSelectedBarber(c.id);
+                    setColabQuery(c.name);
+                    setFilteredBarbers([]);
+                    Keyboard.dismiss();
+                  }}
+                >
+                  <SuggestionText>{c.name}</SuggestionText>
+                </SuggestionItem>
+              ))}
+            </SuggestionList>
+          )}
 
           {/* CLIENTE */}
           <Label>Cliente</Label>

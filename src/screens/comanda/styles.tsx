@@ -12,6 +12,13 @@ export const Container = styled(LinearGradient).attrs({
  padding:20px;
 `;
 
+export const TitleH = styled.Text`
+  font-size: 22px;
+  color: white;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+`;
 
 
 export const Logo = styled.Image`

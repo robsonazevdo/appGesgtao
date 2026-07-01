@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+
 import { Alert, FlatList, Text } from 'react-native';
 import Api from '../../Api';
 import PersonAddIcon from '../../assets/images/add-folder.svg';
@@ -10,6 +11,7 @@ import PersonIcon from '../../assets/images/person.svg';
 import PriceIcon from '../../assets/images/price.svg';
 import ProductIcon from '../../assets/images/product.svg';
 import DollarIcon from '../../assets/images/dollar.svg';
+import Unit from '../../assets/images/amount-down.svg';
 
 import {
   AgendarButton,
@@ -30,13 +32,15 @@ import SearchModal from '@/components/SearchModal';
 import { LoadingIcon } from '@/src/screens/home/styles';
 import { FormEditModal } from '@/components/BaseFormEditModal';
 import GenericFormModal from '@/components/GenericFormModal';
+import ProdutoListModal from '@/components/ProdutoListModal';
 
 
 const options = [
-  { key: 'Buscar Produtos', label: 'Buscar Produtos', Icon: SearchIcon },
+  
   { key: 'Cadastro Produtos', label: 'Cadastro Produtos', Icon: ProductIcon },
   { key: 'Atualizar Dados', label: 'Atualizar Dados', Icon: PersonAddIcon },
   { key: 'Delete Produtos', label: 'Delete Produtos', Icon: DeleteIcon },
+  { key: 'Lista Produtos', label: 'Lista Produtos', Icon: SearchIcon },
 ];
 
 
@@ -51,46 +55,85 @@ export default function HomeProduto() {
   const [showEditProdutcsModal, setShowEditProdutcsModal] = useState(false);
   const [deleteList, setDeleteList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  
+  const [Products, setProducts] = useState<any[]>([]);
+  const [showProdutoListModal, setShowProdutoListModal] = useState(false);
+const [selectedProduto, setSelectedProduto] = useState(false);
   
 
   const handlePress = (key: string) => {
     if (key === 'Cadastro Produtos') {
       setShowProdutoModal(true);
-    } else if (key === 'Buscar Produtos'){
-      setShowSearchProdutoModal(true);
     }else if(key === 'Atualizar Dados'){
       setShowUpdateProdutoModal(true);
     }else if (key === 'Delete Produtos'){
       setShowDeleteProdutoModal(true);
-    }else 
+    }else if (key === 'Lista Produtos'){
+      setShowProdutoListModal(true);
+    }
     {
-      navigation.navigate(key as never);
+      
     }
   };
 
-const handleSaveProduto = async (data: { name: string; price: number; cost: number; unit: string; description: string; }) => {
-  try {
-    const res = await Api.setProducts({
+
+
+const loadProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await Api.getProducts();
       
-      name: data.name,
-      price: data.price,
-      cost: data.cost,
-      unit: data.unit,
-      description: data.description
-     
-    });
-
-    if (res.success) {
-      Alert.alert('Sucesso', 'Produtos salvo com sucesso!');
-      setShowProdutoModal(false);
-    } else {
-      Alert.alert('Erro', res.error || 'Erro ao salvar serviço');
+      if (response.success) {
+        setProducts(response.data || []);
+        console.log(`✅ ${response.data?.length || 0} produtos carregados`);
+      } else {
+        console.error('Erro ao carregar produtos:', response.error);
+        Alert.alert('Erro', response.error || 'Erro ao carregar produtos');
+        setProducts([]);
+      }
+    } catch (error) {
+      console.error('Erro na função loadProducts:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os produtos');
+      setProducts([]);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  // Carregar produtos ao abrir a tela
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+const handleSaveProduto = async (data: { name: string; price: number; cost: number; unit: string; description: string }) => {
+  // Validações
+  if (!data.name || data.name.trim() === '') {
+    Alert.alert('Erro', 'Nome do produto é obrigatório');
+    return;
+  }
+  
+  try {
+    setLoading(true);
+    
+    
+    
+    const res = await Api.setProducts(data);
+    
+    
+    
+    if (res.success) {
+      Alert.alert('Sucesso', 'Produto salvo com sucesso!');
+      setShowProdutoModal(false);
+      if (typeof loadProducts === 'function') {
+        await loadProducts();
+      }
+    } else {
+      Alert.alert('Erro', res.error || 'Erro ao salvar produto');
+    }
   } catch (error) {
-    console.error('Erro ao salvar serviços:', error);
-    Alert.alert('Erro', 'Erro inesperado ao salvar serviço');
+    console.error('❌ Erro ao salvar produto:', error);
+    Alert.alert('Erro', 'Erro inesperado ao salvar produto');
+  } finally {
+    setLoading(false);
   }
 };
 
@@ -188,8 +231,6 @@ const handleProdutcsDelet = (produtcsId: number) => {
 
         />
 
-
-
       <SearchModal
         visible={showUpdateProdutoModal}
         onClose={() => setShowUpdateProdutoModal(false)}
@@ -221,6 +262,7 @@ const handleProdutcsDelet = (produtcsId: number) => {
           </InfoAndButtonRow>
         )} lista={[]}      />
 
+  
 
       <SearchModal
         visible={showDeleteProdutoModal}
@@ -262,26 +304,55 @@ const handleProdutcsDelet = (produtcsId: number) => {
 
       
 
-        <SearchModal
-        visible={showSearchProdutoModal}
-        onClose={() => setShowSearchProdutoModal(false)}
-        title="Buscar Produtos"
-        placeholder="Digite o nome do serviço"
+
+
+
+      <ProdutoListModal
+        visible={showProdutoListModal}
+        onClose={() => setShowProdutoListModal(false)}
+        title="Lista de Produtos"
+        placeholder="Digite o nome do produto"
         onSearch={async (name) => {
-          const res = await Api.getProdutcsSerch({ name });
-          return res.data || [];
-        } }
+          if (name && name.trim() !== '') {
+            const res = await Api.getProductsSearch(name);
+            return res || [];
+          } else {
+            const res = await Api.getProducts();
+            return res || [];
+          }
+        }}
         onSelectItem={(service) => {
-          setSelectedProdutcs(service);
-          setShowSearchProdutoModal(false);
-
-        } }
+          setSelectedProduto(service);
+          setShowProdutoListModal(false);
+        }}
         renderItem={(service) => (
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>{service.name}</Text>
-        )} lista={[]}        />
-
-
-
+          <InfoAndButtonRow>
+            <InfoColumn>
+              <InfoRow>
+                <IconText numberOfLines={1} ellipsizeMode="tail">
+                  {service.name}
+                </IconText>
+              </InfoRow>
+              {service.loc && (
+                <InfoRow>
+                  <IconTextSmall numberOfLines={1} ellipsizeMode="tail">
+                    📍 {service.loc}
+                  </IconTextSmall>
+                </InfoRow>
+              )}
+              {service.stars && (
+                <InfoRow>
+                  <IconTextSmall>
+                    ⭐ {service.stars}
+                  </IconTextSmall>
+                </InfoRow>
+              )}
+            </InfoColumn>
+          </InfoAndButtonRow>
+        )}
+        lista={[]}
+        initialData={[]}
+      />
 
 
           {loading && <LoadingIcon size="large" color="#B4918F" />}
@@ -294,7 +365,7 @@ const handleProdutcsDelet = (produtcsId: number) => {
                 { name: 'name', placeholder: 'Nome do Produto', icon: PersonIcon },
                   { name: 'price', placeholder: 'Preço do Produto', icon: PriceIcon },
                   { name: 'cost', placeholder: 'Custo do Produto', icon: DollarIcon },
-                  { name: 'unit', placeholder: 'Unidade', icon: PersonIcon },
+                  { name: 'unit', placeholder: 'Unidade', icon: Unit },
                   { name: 'description', placeholder: 'Descrição', icon: PersonIcon },
                
               ]}
@@ -326,6 +397,8 @@ const handleProdutcsDelet = (produtcsId: number) => {
     </Container>
   );
 }
+
+
 
 
 

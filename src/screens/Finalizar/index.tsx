@@ -97,18 +97,18 @@ export default function FinalizarComandaScreen() {
     const res = await Api.getOrderByNumber(codigoBusca);
     setLoading(false);
   
-    if (!res || !res.items) {
+    if (!res || !res.data) {
       Alert.alert("Erro", "Comanda não encontrada.");
       return;
     }
 
-    setOrderNumber((res.order_number ?? codigoBusca) || codigoBusca);
-    setNomeCliente(res.client_name)
-    setItems(res.items || []);
-    setStatus(res.status || "");
+    setOrderNumber((res.data.order_number ?? codigoBusca) || codigoBusca);
+    setNomeCliente(res.data.client_name);
+    setItems(res.data.items || []);
+    setStatus(res.data.status || "");
     // recalcula total
     let soma = 0;
-    (res.items || []).forEach((i: any) => soma += Number(i.item_price) * Number(i.qtd));
+    (res.data.items || []).forEach((i: any) => soma += Number(i.item_price) * Number(i.qtd));
     setTotal(soma);
 
     setModalBuscaVisible(false);
@@ -244,7 +244,7 @@ const finalizar = async () => {
 
   setLoading(true);
 
-  const res = await Api.finalizarComanda(orderNumber, formaPagamento, descontoNum);
+  const res = await Api.finalizarComanda(orderNumber, formaPagamento, descontoNum, nomeCliente);
 
   setLoading(false);
 
@@ -277,7 +277,7 @@ const finalizar = async () => {
 
             <ModalInput
               placeholder="Número da comanda"
-              keyboardType="numeric"
+              keyboardType="TextInput"
               value={codigoBusca}
               onChangeText={setCodigoBusca}
             />

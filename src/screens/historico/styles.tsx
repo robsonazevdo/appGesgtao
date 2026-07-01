@@ -83,7 +83,7 @@ export const FinishButton = styled.TouchableOpacity`
   padding: 14px;
   margin-top: 20px;
   border-radius: 8px;
-    margin-bottom: 45px;
+    margin-bottom: 2px;
 `;
 
 export const FinishText = styled.Text`
@@ -113,7 +113,6 @@ export const TitleH = styled.Text`
   text-align: center;
   font-size: 26px;
   font-weight: bold;
- 
 `;
 
 

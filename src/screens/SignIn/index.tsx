@@ -3,18 +3,18 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useContext, useState } from 'react';
 import { Alert } from 'react-native';
 
-import { UserContext } from '../../../src/contexts/UserContext';
+import { UserContext } from '../../contexts/UserContext';
 
 
 import {
-  Container,
-  CustomButton,
-  CustomButtonText,
-  InputArea,
-  SignMessageButton,
-  SignMessageButtonText,
-  SignMessageButtonTextBold,
-  Logo
+    Container,
+    CustomButton,
+    CustomButtonText,
+    InputArea,
+    Logo,
+    SignMessageButton,
+    SignMessageButtonText,
+    SignMessageButtonTextBold
 } from './styles';
 
 import Api from '../../../Api';
@@ -32,30 +32,33 @@ export default function SignInScreen() {
   const [emailField, setEmailField] = useState('');
   const [passwordField, setPasswordField] = useState('');
 
-  const handleSignClick = async () => {
-    if (emailField !== '' && passwordField !== '') {
-      const json = await Api.signIn(emailField, passwordField);
-      if (json.token) {
-        await AsyncStorage.setItem('token', json.token);
+const handleSignClick = async () => {
+  if (emailField !== '' && passwordField !== '') {
+    const json = await Api.signIn(emailField, passwordField);
+    
+    if (json.token) {
+      // Salvar token e email
+      await AsyncStorage.setItem('token', json.token);
+      await AsyncStorage.setItem('userEmail', json.email || emailField); // <-- SALVAR EMAIL
+      
+      userDispatch({
+        type: 'setAvatar',
+        payload: {
+          avatar: json?.data?.avatar || '',
+        },
+      });
 
-        userDispatch({
-          type: 'setAvatar',
-          payload: {
-            avatar: json?.data?.avatar || '',
-          },
-        });
-
-        navigation.reset({
-            index: 0,
-            routes: [{ name: 'Main' }],
-        });
-      } else {
-        Alert.alert('Erro', 'E-mail e/ou senha errados!');
-      }
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      });
     } else {
-      Alert.alert('Atenção', 'Preencha os campos!');
+      Alert.alert('Erro', json.error || 'E-mail e/ou senha errados!');
     }
-  };
+  } else {
+    Alert.alert('Atenção', 'Preencha os campos!');
+  }
+};
 
   const handleMessageButtonClick = () => {
     navigation.reset({

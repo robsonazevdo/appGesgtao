@@ -5,14 +5,18 @@ import Clock from '../assets/images/clock.svg';
 import Dollar from '../assets/images/dollar.svg';
 
 type Props = {
+  serviceName: string;
   service: string;
   barberName: string;
   clientName: string;
   time: string;
   price: string;
   onCancel?: () => void;
-  showCancelButton?: boolean; // 👈 nova prop
+  onRemacar?: () => void;
+  showCancelButton?: boolean;
+  showRemacarButton?: boolean;
 };
+
 
 
 const Card = styled.View`
@@ -22,6 +26,20 @@ const Card = styled.View`
   margin-bottom: 15px;
   border: 1px solid #ccc;
 `;
+
+const RemarcarButton = styled.TouchableOpacity`
+  border: 1px solid #b4918f;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background-color: transparent;
+  margin-left: 8px;
+`;
+
+const RemarcarButtonText = styled.Text`
+  color: #b4918f;
+  font-size: 13px;
+`;
+
 
 const TopRow = styled.View`
   flex-direction: row;
@@ -40,6 +58,13 @@ const SubText = styled.Text`
   font-size: 16px;
   color: #444;
   margin-top: 4px;
+`;
+
+const SubTextTitle = styled.Text`
+  font-size: 16px;
+  color: #444;
+  font-weight: bold;
+  margin-top: -30px;
 `;
 
 const SubTextName = styled.Text`
@@ -84,7 +109,7 @@ const CancelButtonText = styled.Text`
   font-size: 13px;
 `;
 
-const ReservationItem: React.FC<Props> = ({ service, barberName,clientName, time, price, onCancel, showCancelButton = true }) => {
+const ReservationItem: React.FC<Props> = ({ serviceName, service, barberName, clientName, time, price, onCancel, onRemacar, showCancelButton = true, showRemacarButton = true }) => {
 
   return (
     <Card>
@@ -92,9 +117,9 @@ const ReservationItem: React.FC<Props> = ({ service, barberName,clientName, time
         <Title>{service}</Title>
       </TopRow>
 
+      <SubTextTitle>{serviceName}</SubTextTitle>
       <SubText>{barberName}</SubText>
       <SubTextName>{clientName}</SubTextName>
-
       <InfoAndButtonRow>
         <InfoColumn>
           <InfoRow>
@@ -113,6 +138,15 @@ const ReservationItem: React.FC<Props> = ({ service, barberName,clientName, time
             <CancelButtonText>Cancelar</CancelButtonText>
           </CancelButton>
         )}
+
+
+        {showRemacarButton && onRemacar && (
+
+                  <RemarcarButton onPress={onRemacar}>
+                    <RemarcarButtonText>Remacar</RemarcarButtonText>
+                  </RemarcarButton>
+                )}
+
 
       </InfoAndButtonRow>
     </Card>

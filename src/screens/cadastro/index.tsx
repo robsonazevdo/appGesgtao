@@ -14,6 +14,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 type RootStackParamList = {
   HomeCliente: undefined;
   HomeServico: undefined;
+  HomeColaborador: undefined;
   HomeProduto: undefined;
   HomeEstoque: undefined;
   HomePacotes: undefined;
@@ -23,6 +24,7 @@ type RootStackParamList = {
 const options = [
   { key: 'clientes', label: 'Clientes', Icon: NextIcon  },
   { key: 'servicos', label: 'Serviços', Icon: NextIcon },
+  { key: 'colaborador', label: 'Colaborador', Icon: NextIcon },
   { key: 'produtos', label: 'Produtos', Icon: NextIcon  },
   { key: 'estoque', label: 'Estoque', Icon: NextIcon  },
   { key: 'pacotes', label: 'Pacotes', Icon: NextIcon  },
@@ -39,7 +41,10 @@ export default function CadastroScreen() {
      navigation.navigate('HomeCliente')
     } else if (key === 'servicos'){
       navigation.navigate('HomeServico')
-    }else if (key === 'produtos'){
+    } else if (key === 'colaborador'){
+      navigation.navigate('HomeColaborador')
+    }
+    else if (key === 'produtos'){
       navigation.navigate('HomeProduto')
     }else if (key === 'estoque'){
       navigation.navigate('HomeEstoque')

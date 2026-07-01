@@ -1,6 +1,8 @@
 // metro.config.js
 const { getDefaultConfig } = require('expo/metro-config'); // se estiver usando Expo
 const defaultConfig = getDefaultConfig(__dirname);
+defaultConfig.resolver.assetExts.push('wasm');
+defaultConfig.resolver.sourceExts.push('wasm');
 
 defaultConfig.transformer = {
   ...defaultConfig.transformer,

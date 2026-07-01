@@ -1,16 +1,26 @@
 import styled from 'styled-components/native';
 
-export const Container = styled.View`
+import { LinearGradient } from 'expo-linear-gradient';
+
+export const Container = styled(LinearGradient).attrs({
+  colors: ['#b4918f', '#956f6d'], 
+  start: { x: 0, y: 0 },
+  end: { x: 0, y: 1 },
+})`
   flex: 1;
-  background-color: #222;
-  padding: 20px;
+ padding:20px;
 `;
 
 export const Header = styled.View`
   flex-direction: row;
   align-items: center;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  background-color: #b4918f;
+  padding: 12px 16px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
 `;
+
 
 export const BackButton = styled.TouchableOpacity`
   margin-right: 10px;
@@ -29,10 +39,11 @@ export const DayCard = styled.View`
   border-radius: 12px;
 `;
 
+// No styles.ts - remover a cor padrão
 export const DayText = styled.Text`
-  color: #fff;
   font-size: 16px;
   margin-bottom: 10px;
+  height: 50px;
 `;
 
 export const HourButton = styled.TouchableOpacity<{ active: boolean }>`
@@ -51,6 +62,7 @@ export const SaveButton = styled.TouchableOpacity`
   padding: 15px;
   border-radius: 12px;
   align-items: center;
+
 `;
 
 export const SaveButtonText = styled.Text`

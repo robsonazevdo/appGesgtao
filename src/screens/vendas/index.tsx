@@ -2,9 +2,9 @@ import React from 'react';
 import { FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
+import BackIcon from "../../../assets/images/back.svg";
 import NextIcon from '../../../assets/images/nav_next.svg';
-import { Container, Logo, Card, CardText } from './styles';
+import { Container, Logo, Card, CardText, BackButton } from './styles';
 
 type RootStackParamList = {
   Comandas: undefined;
@@ -12,15 +12,19 @@ type RootStackParamList = {
   Caixa: undefined;
   FluxoMensal: undefined
   Relatorio: undefined;
+
 };
 
 const options = [
   { key: 'Comandas', label: 'Abrir Comanda', Icon: NextIcon },
   { key: 'Finalizar', label: 'Finalizar Venda', Icon: NextIcon },
+  { key: 'Saidas', label: 'Novo Lançamento', Icon: NextIcon },
   { key: 'Caixa', label: 'Fluxo Diário', Icon: NextIcon },
   { key: 'FluxoMensal', label: 'Fluxo mensal', Icon: NextIcon },
-  { key: 'Saidas', label: 'Saidas', Icon: NextIcon },
-  { key: 'Relatorio', label: 'Relatórios', Icon: NextIcon },
+  { key: 'Relatorio', label: 'Relatório', Icon: NextIcon },
+  { key: 'Orcamento', label: 'Orçamento', Icon: NextIcon },
+  { key: 'Historico', label: 'Histórico', Icon: NextIcon },
+ 
 ];
 
 export default function VendaScreen() {
@@ -37,6 +41,10 @@ export default function VendaScreen() {
         source={require('../../../assets/images/Logo-branco.png')}
         resizeMode="contain"
       />
+
+       <BackButton onPress={() => navigation.goBack()}>
+              <BackIcon width="45" height="45" fill="#fff" />
+            </BackButton>
 
       <FlatList
         data={options}

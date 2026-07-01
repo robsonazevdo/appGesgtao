@@ -2,17 +2,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useContext, useState } from 'react';
 
-import { UserContext } from '../../../src/contexts/UserContext';
+import { UserContext } from '../../contexts/UserContext';
 
 import {
-  Container,
-  CustomButton,
-  CustomButtonText,
-  InputArea,
-  SignMessageButton,
-  SignMessageButtonText,
-  SignMessageButtonTextBold,
-  Logo
+    Container,
+    CustomButton,
+    CustomButtonText,
+    InputArea,
+    Logo,
+    SignMessageButton,
+    SignMessageButtonText,
+    SignMessageButtonTextBold
 } from './styles';
 
 import Api from '../../../Api';
@@ -33,30 +33,32 @@ export default function SignUpScreen() {
   const [emailField, setEmailField] = useState('');
   const [passwordField, setPasswordField] = useState('');
 
-  const handleSignClick = async () => {
-     if(nameField !== '' && emailField !== '' && passwordField !== '') {
-          let res = await Api.signUp(nameField, emailField, passwordField);
+const handleSignClick = async () => {
+  if (nameField !== '' && emailField !== '' && passwordField !== '') {
+    let res = await Api.signUp(nameField, emailField, passwordField);
 
-      if (res.token) {
-        await AsyncStorage.setItem('token', res.token);
+    if (res.token) {
+      await AsyncStorage.setItem('token', res.token);
+      await AsyncStorage.setItem('userEmail', emailField); // <-- SALVAR EMAIL
+      await AsyncStorage.setItem('userName', nameField);   // <-- SALVAR NOME
 
-        userDispatch({
-          type: 'setAvatar',
-          payload: {
-             avatar: res?.data?.avatar || '',
-          },
-        });
+      userDispatch({
+        type: 'setAvatar',
+        payload: {
+          avatar: res?.data?.avatar || '',
+        },
+      });
 
-        navigation.reset({
-          routes: [{ name:'Main' }],
-        });
-      } else {
-        alert("Erro: "+res.error);
-      }
+      navigation.reset({
+        routes: [{ name: 'Main' }],
+      });
     } else {
-       alert("Preencha os campos");
+      alert("Erro: " + res.error);
     }
-  };
+  } else {
+    alert("Preencha os campos");
+  }
+};
 
   const handleMessageButtonClick = () => {
     navigation.reset({

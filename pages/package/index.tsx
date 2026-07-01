@@ -1,15 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
-import { Alert, FlatList, Text } from 'react-native';
 import { useEffect, useState } from 'react';
+import { Alert, FlatList, Text } from 'react-native';
 import Api from '../../Api';
 import PersonAddIcon from '../../assets/images/add-folder.svg';
 import BackIcon from '../../assets/images/back.svg';
 import DeleteIcon from '../../assets/images/delete.svg';
-import SearchIcon from '../../assets/images/search.svg';
 import PersonIcon from '../../assets/images/person.svg';
 import PriceIcon from '../../assets/images/price.svg';
 import ProductIcon from '../../assets/images/product.svg';
-import DollarIcon from '../../assets/images/dollar.svg';
+import SearchIcon from '../../assets/images/search.svg';
 
 
 import {
@@ -27,10 +26,10 @@ import {
 
 import ClientOptionCard from '../../components/ClientOption';
 
-import SearchModal from '@/components/SearchModal';
-import { LoadingIcon } from '@/src/screens/home/styles';
 import { FormEditModal } from '@/components/BaseFormEditModal';
 import GenericFormModal from '@/components/GenericFormModal';
+import SearchModal from '@/components/SearchModal';
+import { LoadingIcon } from '@/src/screens/home/styles';
 
 
 const options = [
@@ -84,20 +83,20 @@ export default function HomePacotes() {
     }
   };
 
-const handleSavePacotes = async (data: { product_id: number;
-  quantity: number;
-  type: 'entrada' | 'saida';
-  description: string;
-  date: string; }) => {
+const handleSavePacotes = async (data: { 
+ name: string; 
+  price: number; 
+  duration: number; 
+  expiration_date: string; }) => {
 
   try {
-    const res = await Api.setStock({
+    const res = await Api.setPackage({
       
-      product_id: data.product_id,
-      quantity: data.quantity,
-      type: data.type,
-      description:data.description,
-      date: new Date(data.date).toISOString(), 
+       name: data.name,
+      price: Number(data.price),
+      duration: Number(data.duration),
+      expiration_date: data.expiration_date,
+
      
     });
 
@@ -109,14 +108,14 @@ const handleSavePacotes = async (data: { product_id: number;
     }
 
   } catch (error) {
-    console.error('Erro ao salvar serviços:', error);
-    Alert.alert('Erro', 'Erro inesperado ao salvar serviço');
+    console.error('Erro ao salvar pacote:', error);
+    Alert.alert('Erro', 'Erro inesperado ao salvar pacote');
   }
 };
 
 
-const handleServiceEditar = (service: any) => {
-  setSelectedStock({ ...service });
+const handlePackageEditar = (pkg: any) => {
+  setSelectedStock({ ...pkg });
   
   setShowEditStockModal(true);
 };
@@ -138,7 +137,7 @@ const handleStockDelet = (stockId: number) => {
         onPress: async () => {
         setLoading(true);
         try {
-          const json = await Api.deleteStock({ stock_id: stockId });
+          const json = await Api.deleteStock(stockId);
           if (json.success) {
             
             setDeleteList([]);
@@ -146,7 +145,7 @@ const handleStockDelet = (stockId: number) => {
             
             setShowDeletePacotesModal(false);
           } else {
-            Alert.alert('Erro', json.error || 'Falha ao excluir o Pacotes.');
+            Alert.alert('Erro', 'Falha ao excluir o Pacotes.');
           }
         } catch {
           Alert.alert('Erro', 'Não foi possível excluir o Pacotes.');
@@ -169,7 +168,7 @@ const handleStockDelet = (stockId: number) => {
  
 
   return (
-    <Container>
+    <Container colors={['#ffffff', '#fafafa']}>
       <Logo source={require('../../assets/images/Logo-branco.png')} resizeMode="contain" />
 
       <BackButton onPress={handleBackButton}>
@@ -200,25 +199,12 @@ const handleStockDelet = (stockId: number) => {
             
            handleSavePacotes(data);
           }}
-          fields={[
-              {
-                name: 'product_id',
-                placeholder: 'Produto',
-                icon: PersonIcon,
-                type: 'select',
-                options: productOptions
-                
-              },
-              { name: 'quantity', placeholder: 'Quantidade', icon: PriceIcon },
-              { name: 'type', placeholder: 'entrada | saida', icon: DollarIcon },
-              { name: 'description', placeholder: 'Descrição', icon: PriceIcon },
-              {
-                name: 'date',
-                placeholder: 'Data',
-                icon: PersonIcon,
-                type: 'date' // custom type handled by your modal
-              },
-            ]}
+            fields={[
+    { name: 'name', placeholder: 'Nome do Pacote', icon: PersonIcon },
+    { name: 'price', placeholder: 'Preço', icon: PriceIcon },
+    { name: 'duration', placeholder: 'Duração (minutos)', icon: PriceIcon },
+    { name: 'expiration_date', placeholder: 'Data de Validade', icon: PersonIcon, type: 'date' },
+  ]}
 
 
         />
@@ -229,27 +215,27 @@ const handleStockDelet = (stockId: number) => {
         visible={showUpdatePacotesModal}
         onClose={() => setShowUpdatePacotesModal(false)}
         title="Atualizar"
-        placeholder="Digite o nome do produto"
+        placeholder="Digite o nome do Pacote"
         onSearch={async (name) => {
-          const res = await Api.getStockSerch({ name });
-          return res.data || [];
+          const res = await Api.getPackageSearch(name);
+          return res || [];
         } }
-        onSelectItem={(service) => {
+        onSelectItem={(pkg) => {
           setShowUpdatePacotesModal(false);
-          handleServiceEditar(service);
+          handlePackageEditar(pkg);
         } }
 
-        renderItem={(service) => (
+        renderItem={(pkg) => (
           <InfoAndButtonRow>
             <InfoColumn>
               <InfoRow>
                 <IconText numberOfLines={1} ellipsizeMode="tail">
-                  {service.product}
+                  {pkg.name}
                 </IconText>
               </InfoRow>
             </InfoColumn>
 
-            <AgendarButton onPress={() => handleServiceEditar({ ...service })}>
+            <AgendarButton onPress={() => handlePackageEditar({ ...pkg })}>
 
               <AgendarButtonText>Editar</AgendarButtonText>
             </AgendarButton>
@@ -302,17 +288,18 @@ const handleStockDelet = (stockId: number) => {
         onClose={() => setShowSearchPacotesModal(false)}
         title="Buscar Pacotes"
         placeholder="Digite o nome Produto"
-        onSearch={async (name) => {
-          const res = await Api.getPackageSerch({ name });
-          return res.data || [];
+        onSearch={async (searchText: string) => {
+          const res = await Api.getPackageSearch(searchText);
+          
+          return res || [];
         } }
-        onSelectItem={(service) => {
-          setSelectedStock(service);
+        onSelectItem={(pkg) => {
+          setSelectedStock(pkg);
           setShowSearchPacotesModal(false);
 
         } }
-        renderItem={(service) => (
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>{service.product}| Qtd. {service.quantity}</Text>
+        renderItem={(pkg) => (
+          <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>{pkg.name}</Text>
         )} lista={[]}        />
 
 
@@ -329,36 +316,29 @@ const handleStockDelet = (stockId: number) => {
               onClose={() => setShowEditStockModal(false)}
               initialData={{
     ...selectedStock,
-    datetime: new Date(selectedStock.datetime).toISOString(), // garantir formato
+    expiration_date: new Date(selectedStock.expiration_date).toISOString(), // garantir formato
   }}
               
-              fields={[
-                { name: 'product', placeholder: 'Nome do pro', icon: PersonIcon },
-                  { name: 'type', placeholder: 'Preço do Pacotes', icon: PriceIcon },
-                  { name: 'quantity', placeholder: 'Custo do Pacotes', icon: DollarIcon },
-                  { name: 'description', placeholder: 'Unidade', icon: PersonIcon },
-                  {
-                    name: 'datetime',
-                    placeholder: 'Data',
-                    icon: PersonIcon,
-                    type: 'date', 
-                  }
-                            
+            fields={[
+                { name: 'name', placeholder: 'Nome do Pacote', icon: PersonIcon },
+                { name: 'price', placeholder: 'Preço', icon: PriceIcon },
+                { name: 'duration', placeholder: 'Duração (minutos)', icon: PriceIcon },
+                { name: 'expiration_date', placeholder: 'Data de Validade', icon: PersonIcon, type: 'date' },
               ]}
-             onSave={async (srv) => {
+             onSave={async (packageData) => {
                 try {
-                  console.log(srv)
-                  const json = await Api.UpdateStock({ ...srv });
+                  
+                  const json = await Api.updatePackages({ ...packageData });
                   
                   if (json.success) {
-                    setSelectedStock(json.service);
+                    setSelectedStock(json);
                     Alert.alert('Sucesso', 'Pacotes atualizado com sucesso.');
                   } else {
-                    Alert.alert('Erro', json.error || 'Erro ao atualizar serviço.');
+                    Alert.alert('Erro', json.error || 'Erro ao atualizar pacote.');
                   }
                 } catch (error) {
-                  console.error('Erro ao atualizar serviço:', error);
-                  Alert.alert('Erro', 'Erro inesperado ao atualizar serviço.');
+                  console.error('Erro ao atualizar pacote:', error);
+                  Alert.alert('Erro', 'Erro inesperado ao atualizar pacote.');
                 }
               }}
             />

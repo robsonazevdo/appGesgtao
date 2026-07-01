@@ -119,7 +119,7 @@ return (
     
 
     <View style={{ flex: 1, padding: 20 }}>
-      <Title>Fluxo Mensal</Title>
+      
 
       <BackButton onPress={() => navigation.goBack()}>
       <BackIcon width={40} height={40} fill="#333" />
@@ -129,6 +129,8 @@ return (
       source={require("../../../assets/images/Logo-branco.png")}
       resizeMode="contain"
     />
+
+    <Title>Fluxo Mensal</Title>
 
       {/* FILTRO DE MÊS */}
       <Card>
